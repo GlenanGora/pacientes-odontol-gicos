@@ -1,0 +1,22 @@
+{
+  "clinica": {
+    "nombre": "Clínica Odontológica Ejemplo",
+    "logotipo_url": "https://placehold.co/200x50/3498db/ffffff?text=Logo+Clínica",
+    "direccion": "Av. Los Tulipanes 456, La Molina, Lima",
+    "telefono": "999-888-777",
+    "correo": "contacto@clinicaejemplo.com",
+    "horario_atencion": "Lunes a Viernes de 9:00 a 18:00",
+    "redes_sociales": {
+      "facebook": "https://www.facebook.com/clinicaejemplo",
+      "instagram": "https://www.instagram.com/clinicaejemplo",
+      "whatsapp": "999-888-777"
+    },
+    "nombre_doctor": "Dra. Sofía Torres"
+  },
+  "database": {
+    "host": "localhost",
+    "usuario": "root",
+    "password": "123654789ABC",
+    "nombre_db": "clinica_odontologica"
+  }
+}
