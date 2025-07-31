@@ -21,21 +21,29 @@ if (!$id_paciente) {
     </a>
 </div>
 
-<div class="card mb-4">
-    <div class="card-header">
-        Datos del Paciente
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                Datos del Paciente
+            </div>
+            <div class="card-body" id="datos-paciente">
+                <!-- Los datos del paciente se cargarán aquí con JavaScript -->
+            </div>
+        </div>
     </div>
-    <div class="card-body" id="datos-paciente">
-        <!-- Los datos del paciente se cargarán aquí con JavaScript -->
-    </div>
-</div>
-
-<div class="card mb-4">
-    <div class="card-header">
-        Historial Médico
-    </div>
-    <div class="card-body" id="historial-medico">
-        <!-- El historial médico se cargará aquí con JavaScript -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                Historial Médico
+                <button class="btn btn-warning btn-sm text-white" id="btn-editar-historial">
+                    &#9998; Editar
+                </button>
+            </div>
+            <div class="card-body" id="historial-medico">
+                <!-- El historial médico se cargará aquí con JavaScript -->
+            </div>
+        </div>
     </div>
 </div>
 
@@ -73,6 +81,40 @@ if (!$id_paciente) {
                     <!-- Los pagos se cargarán aquí con JavaScript -->
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar el historial médico -->
+<div class="modal fade" id="editarHistorialModal" tabindex="-1" aria-labelledby="editarHistorialModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarHistorialModalLabel">Editar Historial Médico</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-editar-historial">
+                    <input type="hidden" name="id_paciente" value="<?php echo $id_paciente; ?>">
+                    <div class="mb-3">
+                        <label for="enfermedades" class="form-label">Enfermedades Preexistentes</label>
+                        <textarea class="form-control" id="enfermedades" name="enfermedades_preexistentes" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="alergias" class="form-label">Alergias</label>
+                        <textarea class="form-control" id="alergias" name="alergias" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="medicacion" class="form-label">Medicación Actual</label>
+                        <textarea class="form-control" id="medicacion" name="medicacion_actual" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="habitos" class="form-label">Hábitos</label>
+                        <textarea class="form-control" id="habitos" name="habitos" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -153,6 +195,16 @@ if (!$id_paciente) {
         const formNuevoProcedimiento = document.getElementById('form-nuevo-procedimiento');
         const idPlanTratamientoInput = document.getElementById('id_plan_tratamiento');
         const tratamientoSelect = document.getElementById('tratamiento');
+        
+        // Elementos para el modal de edición de historial médico
+        const btnEditarHistorial = document.getElementById('btn-editar-historial');
+        const editarHistorialModal = new bootstrap.Modal(document.getElementById('editarHistorialModal'));
+        const formEditarHistorial = document.getElementById('form-editar-historial');
+        const enfermedadesTextarea = document.getElementById('enfermedades');
+        const alergiasTextarea = document.getElementById('alergias');
+        const medicacionTextarea = document.getElementById('medicacion');
+        const habitosTextarea = document.getElementById('habitos');
+
 
         // Función para cargar todos los datos de un paciente
         function cargarHistorialPaciente() {
@@ -184,6 +236,12 @@ if (!$id_paciente) {
                             <p><strong>Medicación Actual:</strong> ${historialMedico.medicacion_actual || 'N/A'}</p>
                             <p><strong>Hábitos:</strong> ${historialMedico.habitos || 'N/A'}</p>
                         `;
+                        // Rellenar el formulario del modal de edición
+                        enfermedadesTextarea.value = historialMedico.enfermedades_preexistentes || '';
+                        alergiasTextarea.value = historialMedico.alergias || '';
+                        medicacionTextarea.value = historialMedico.medicacion_actual || '';
+                        habitosTextarea.value = historialMedico.habitos || '';
+
                     } else {
                         historialMedicoDiv.innerHTML = '<p>No se ha registrado historial médico.</p>';
                     }
@@ -247,7 +305,7 @@ if (!$id_paciente) {
             fetch('api/diagnosticos.php?action=listar')
                 .then(response => response.json())
                 .then(diagnosticos => {
-                    diagnosticoSelect.innerHTML += `<option value="">Seleccione un diagnóstico</option>`;
+                    diagnosticoSelect.innerHTML = `<option value="">Seleccione un diagnóstico</option>`;
                     diagnosticos.forEach(d => {
                         diagnosticoSelect.innerHTML += `<option value="${d.id_diagnostico}">${d.nombre_diagnostico}</option>`;
                     });
@@ -257,13 +315,42 @@ if (!$id_paciente) {
             fetch('api/tratamientos.php?action=listar')
                 .then(response => response.json())
                 .then(tratamientos => {
-                    tratamientoSelect.innerHTML += `<option value="">Seleccione un tratamiento</option>`;
+                    tratamientoSelect.innerHTML = `<option value="">Seleccione un tratamiento</option>`;
                     tratamientos.forEach(t => {
                         tratamientoSelect.innerHTML += `<option value="${t.id_tratamiento}">${t.nombre_tratamiento} (S/. ${t.costo_base})</option>`;
                     });
                 })
                 .catch(error => console.error('Error al cargar tratamientos:', error));
         }
+
+        // Evento para mostrar el modal de edición de historial médico
+        btnEditarHistorial.addEventListener('click', function() {
+            editarHistorialModal.show();
+        });
+
+        // Manejar el envío del formulario de edición de historial
+        formEditarHistorial.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(formEditarHistorial);
+            const data = Object.fromEntries(formData.entries());
+
+            fetch('api/historia_clinica.php', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert('Historial médico actualizado con éxito.');
+                    editarHistorialModal.hide();
+                    cargarHistorialPaciente(); // Recargar el historial
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            })
+            .catch(error => console.error('Error al actualizar historial médico:', error));
+        });
 
         // Evento para mostrar el modal de nuevo tratamiento
         btnNuevoTratamiento.addEventListener('click', function() {
@@ -329,7 +416,6 @@ if (!$id_paciente) {
         // Función global para generar presupuesto
         window.generarPresupuesto = function(idPlan) {
             // Lógica para generar el presupuesto
-            // Esto podría abrir un nuevo modal o redirigir a una página de generación de PDF
             alert(`Funcionalidad para generar presupuesto para el Plan #${idPlan} no implementada.`);
         };
 

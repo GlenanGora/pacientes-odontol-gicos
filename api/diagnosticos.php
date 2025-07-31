@@ -52,6 +52,35 @@ switch ($metodo) {
         }
         break;
 
+    case 'PUT':
+        // Lógica para editar un diagnóstico (action=editar)
+        if (isset($_GET['action']) && $_GET['action'] == 'editar' && isset($_GET['id'])) {
+            $id_diagnostico = sanear_entrada($_GET['id']);
+            $data = json_decode(file_get_contents('php://input'), true);
+            $nombre_diagnostico = sanear_entrada($data['nombre_diagnostico']);
+
+            if (!empty($nombre_diagnostico)) {
+                $query = "UPDATE tbl_diagnosticos SET nombre_diagnostico = ? WHERE id_diagnostico = ?";
+                $stmt = $conexion->prepare($query);
+                $stmt->bind_param("si", $nombre_diagnostico, $id_diagnostico);
+
+                if ($stmt->execute()) {
+                    echo json_encode(['success' => true, 'message' => 'Diagnóstico actualizado con éxito.']);
+                } else {
+                    http_response_code(500);
+                    echo json_encode(['success' => false, 'message' => 'Error al actualizar el diagnóstico: ' . $stmt->error]);
+                }
+                $stmt->close();
+            } else {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'El nombre del diagnóstico no puede estar vacío.']);
+            }
+        } else {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Acción o ID de diagnóstico no válidos.']);
+        }
+        break;
+
     case 'DELETE':
         // Lógica para eliminar un diagnóstico (action=eliminar)
         if (isset($_GET['action']) && $_GET['action'] == 'eliminar' && isset($_GET['id'])) {
