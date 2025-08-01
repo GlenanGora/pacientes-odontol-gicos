@@ -285,6 +285,60 @@ if (!$id_paciente) {
     </div>
 </div>
 
+<!-- Modal para emitir receta -->
+<div class="modal fade" id="emitirRecetaModal" tabindex="-1" aria-labelledby="emitirRecetaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="emitirRecetaModalLabel">Emitir Receta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-emitir-receta">
+                    <input type="hidden" name="id_paciente" value="<?php echo $id_paciente; ?>">
+                    <input type="hidden" name="id_procedimiento_realizado" id="receta_id_procedimiento_realizado_hidden">
+                    <div class="mb-3">
+                        <label class="form-label">Paciente</label>
+                        <input type="text" class="form-control" id="receta_nombre_paciente" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label for="receta_indicaciones" class="form-label">Indicaciones Generales</label>
+                        <textarea class="form-control" id="receta_indicaciones" name="indicaciones_generales" rows="3"></textarea>
+                    </div>
+
+                    <hr>
+                    <h5>Medicamentos</h5>
+                    <div id="medicamentos-container">
+                        <div class="row g-2 mb-2 medicamento-row">
+                            <div class="col-md-3">
+                                <input type="text" class="form-control" name="medicamentos[0][nombre]" placeholder="Nombre" required>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" class="form-control" name="medicamentos[0][dosis]" placeholder="Dosis" required>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" class="form-control" name="medicamentos[0][frecuencia]" placeholder="Frecuencia">
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <input type="text" class="form-control me-2" name="medicamentos[0][duracion]" placeholder="Duración">
+                                <button type="button" class="btn btn-danger" onclick="eliminarMedicamento(this)">
+                                    &#10006;
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm mb-3" id="btn-agregar-medicamento">
+                        &#10133; Agregar Medicamento
+                    </button>
+                    <div class="d-grid mt-3">
+                        <button type="submit" class="btn btn-primary">Emitir Receta</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -335,6 +389,48 @@ if (!$id_paciente) {
         // Elementos para el modal de observaciones
         const observacionesModal = new bootstrap.Modal(document.getElementById('observacionesModal'));
         const observacionesDetalleDiv = document.getElementById('observaciones-detalle');
+
+        // Elementos para el modal de emitir receta
+        const emitirRecetaModal = new bootstrap.Modal(document.getElementById('emitirRecetaModal'));
+        const formEmitirReceta = document.getElementById('form-emitir-receta');
+        const recetaIdProcedimientoRealizadoInput = document.getElementById('receta_id_procedimiento_realizado_hidden');
+        const recetaNombrePacienteInput = document.getElementById('receta_nombre_paciente');
+        const medicamentosContainer = document.getElementById('medicamentos-container');
+        const btnAgregarMedicamento = document.getElementById('btn-agregar-medicamento');
+        
+        // Manejo de medicamentos en el modal de receta
+        let medicamentoIndex = 1;
+        
+        btnAgregarMedicamento.addEventListener('click', function() {
+            const newRow = document.createElement('div');
+            newRow.className = 'row g-2 mb-2 medicamento-row';
+            newRow.innerHTML = `
+                <div class="col-md-3">
+                    <input type="text" class="form-control" name="medicamentos[${medicamentoIndex}][nombre]" placeholder="Nombre" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control" name="medicamentos[${medicamentoIndex}][dosis]" placeholder="Dosis" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control" name="medicamentos[${medicamentoIndex}][frecuencia]" placeholder="Frecuencia">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <input type="text" class="form-control me-2" name="medicamentos[${medicamentoIndex}][duracion]" placeholder="Duración">
+                    <button type="button" class="btn btn-danger" onclick="eliminarMedicamento(this)">
+                        &#10006;
+                    </button>
+                </div>
+            `;
+            medicamentosContainer.appendChild(newRow);
+            medicamentoIndex++;
+        });
+
+        window.eliminarMedicamento = function(button) {
+            const row = button.closest('.medicamento-row');
+            if (row) {
+                row.remove();
+            }
+        };
 
         // Función para cargar todos los datos de un paciente
         function cargarHistorialPaciente() {
@@ -415,6 +511,7 @@ if (!$id_paciente) {
                                                 <button class="btn btn-sm btn-warning ms-2" onclick="mostrarModalEditarProcedimiento(${proc.id_procedimiento_realizado}, ${proc.costo_personalizado}, '${proc.notas_evolucion || ''}')" data-bs-toggle="tooltip" title="Editar Procedimiento">&#9998;</button>
                                                 <button class="btn btn-sm btn-danger ms-2" onclick="eliminarProcedimiento(${proc.id_procedimiento_realizado})" data-bs-toggle="tooltip" title="Eliminar Procedimiento">&#128465;</button>
                                                 <button class="btn btn-sm btn-primary ms-2" ${saldoPendienteProc <= 0 ? 'disabled' : ''} onclick="mostrarModalPago(${proc.id_procedimiento_realizado}, ${saldoPendienteProc})" data-bs-toggle="tooltip" title="Registrar Pago">&#128179;</button>
+                                                <button class="btn btn-sm btn-info text-white ms-2" onclick="mostrarModalEmitirReceta(${proc.id_procedimiento_realizado})" data-bs-toggle="tooltip" title="Emitir Receta">&#128220;</button>
                                             </div>
                                         </li>
                                     `;
@@ -460,7 +557,7 @@ if (!$id_paciente) {
                             historialPagosBody.innerHTML += row;
                         });
                     } else {
-                        historialPagosBody.innerHTML = '<tr><td colspan="6" class="text-center">No hay pagos registrados.</td></tr>';
+                        historialPagosBody.innerHTML = '<tr><td colspan="5" class="text-center">No hay pagos registrados.</td></tr>';
                     }
 
                     // Inicializar tooltips de Bootstrap
@@ -712,6 +809,54 @@ if (!$id_paciente) {
             observacionesDetalleDiv.textContent = observaciones || 'No hay observaciones para este plan.';
             observacionesModal.show();
         };
+
+        // Función global para mostrar el modal de emitir receta
+        window.mostrarModalEmitirReceta = function(idProc) {
+            recetaIdProcedimientoRealizadoInput.value = idProc;
+            recetaNombrePacienteInput.value = pacienteNombreCompletoSpan.textContent; // Cargar el nombre del paciente
+            emitirRecetaModal.show();
+        };
+        
+        // Manejar el envío del formulario de emitir receta
+        formEmitirReceta.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(formEmitirReceta);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+            
+            // Lógica de serialización de medicamentos
+            const medicamentos = [];
+            document.querySelectorAll('#emitirRecetaModal .medicamento-row').forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                medicamentos.push({
+                    nombre: inputs[0].value,
+                    dosis: inputs[1].value,
+                    frecuencia: inputs[2].value,
+                    duracion: inputs[3].value
+                });
+            });
+            data.medicamentos = medicamentos;
+
+            fetch('api/recetas.php?action=emitir', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert('Receta emitida con éxito.');
+                    emitirRecetaModal.hide();
+                    formEmitirReceta.reset();
+                    cargarHistorialPaciente(); // Recargar el historial
+                } else {
+                    alert('Error al emitir la receta: ' + result.message);
+                }
+            })
+            .catch(error => console.error('Error al emitir la receta:', error));
+        });
         
         // Función global para generar presupuesto
         window.generarPresupuesto = function(idPlan) {

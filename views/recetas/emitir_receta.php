@@ -19,11 +19,11 @@
     </div>
     <div class="card-body">
         <form id="form-receta">
+            <input type="hidden" name="id_paciente" id="receta_id_paciente">
+            <input type="hidden" name="id_procedimiento_realizado" id="receta_id_procedimiento_realizado_hidden">
             <div class="mb-3">
-                <label for="id_paciente" class="form-label">Paciente</label>
-                <select id="id_paciente" name="id_paciente" class="form-select" required>
-                    <option value="">Seleccione un paciente...</option>
-                </select>
+                <label class="form-label">Paciente</label>
+                <input type="text" class="form-control" id="receta_nombre_paciente" disabled>
             </div>
             <div class="mb-3">
                 <label for="indicaciones" class="form-label">Indicaciones Generales</label>
@@ -34,20 +34,18 @@
             <h5>Medicamentos</h5>
             <div id="medicamentos-container">
                 <div class="row g-2 mb-2 medicamento-row">
-                    <div class="col-md-4">
-                        <label class="form-label">Nombre</label>
-                        <input type="text" class="form-control" name="medicamentos[0][nombre]" required>
+                    <div class="col-md-3">
+                        <input type="text" class="form-control" name="medicamentos[0][nombre]" placeholder="Nombre" required>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Dosis</label>
-                        <input type="text" class="form-control" name="medicamentos[0][dosis]" required>
+                        <input type="text" class="form-control" name="medicamentos[0][dosis]" placeholder="Dosis" required>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Frecuencia</label>
-                        <input type="text" class="form-control" name="medicamentos[0][frecuencia]">
+                        <input type="text" class="form-control" name="medicamentos[0][frecuencia]" placeholder="Frecuencia">
                     </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="button" class="btn btn-danger w-100" onclick="eliminarMedicamento(this)">
+                    <div class="col-md-3 d-flex align-items-end">
+                        <input type="text" class="form-control me-2" name="medicamentos[0][duracion]" placeholder="Duración">
+                        <button type="button" class="btn btn-danger" onclick="eliminarMedicamento(this)">
                             &#10006;
                         </button>
                     </div>
@@ -66,11 +64,11 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const formReceta = document.getElementById('form-receta');
-        const pacienteSelect = document.getElementById('id_paciente');
         const medicamentosContainer = document.getElementById('medicamentos-container');
         const btnAgregarMedicamento = document.getElementById('btn-agregar-medicamento');
         let medicamentoIndex = 1;
 
+        // Función para cargar los pacientes en el combo
         function cargarPacientes() {
             // Se corrige el fetch para que apunte a la API de pacientes
             fetch('api/pacientes.php')
@@ -89,8 +87,8 @@
             const newRow = document.createElement('div');
             newRow.className = 'row g-2 mb-2 medicamento-row';
             newRow.innerHTML = `
-                <div class="col-md-4">
-                    <input type="text" class="form-control" name="medicamentos[${medicamentoIndex}][nombre]" placeholder="Nombre del medicamento" required>
+                <div class="col-md-3">
+                    <input type="text" class="form-control" name="medicamentos[${medicamentoIndex}][nombre]" placeholder="Nombre" required>
                 </div>
                 <div class="col-md-3">
                     <input type="text" class="form-control" name="medicamentos[${medicamentoIndex}][dosis]" placeholder="Dosis" required>
@@ -98,8 +96,9 @@
                 <div class="col-md-3">
                     <input type="text" class="form-control" name="medicamentos[${medicamentoIndex}][frecuencia]" placeholder="Frecuencia">
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="button" class="btn btn-danger w-100" onclick="eliminarMedicamento(this)">
+                <div class="col-md-3 d-flex align-items-end">
+                    <input type="text" class="form-control me-2" name="medicamentos[${medicamentoIndex}][duracion]" placeholder="Duración">
+                    <button type="button" class="btn btn-danger" onclick="eliminarMedicamento(this)">
                         &#10006;
                     </button>
                 </div>
@@ -130,7 +129,8 @@
                 medicamentos.push({
                     nombre: inputs[0].value,
                     dosis: inputs[1].value,
-                    frecuencia: inputs[2].value
+                    frecuencia: inputs[2].value,
+                    duracion: inputs[3].value
                 });
             });
             data.medicamentos = medicamentos;
@@ -153,7 +153,8 @@
             .catch(error => console.error('Error al emitir la receta:', error));
         });
 
-        cargarPacientes();
+        // La función de cargar pacientes se elimina porque la información del paciente se pasa
+        // a través de la URL.
+        //cargarPacientes();
     });
 </script>
-

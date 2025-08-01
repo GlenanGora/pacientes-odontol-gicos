@@ -29,9 +29,23 @@ switch ($metodo) {
     case 'GET':
         if (isset($_GET['action']) && $_GET['action'] == 'listar') {
             // Lógica para listar el historial de recetas
-            $query = "SELECT r.id_receta, r.fecha_emision, p.nombres, p.apellidos, CONCAT(p.nombres, ' ', p.apellidos) AS nombre_paciente
+            $query = "SELECT 
+                        r.id_receta, 
+                        r.fecha_emision, 
+                        CONCAT(p.nombres, ' ', p.apellidos) AS nombre_paciente,
+                        t.nombre_tratamiento,
+                        d.nombre_diagnostico,
+                        rd.nombre_medicamento,
+                        rd.dosis,
+                        rd.frecuencia,
+                        rd.duracion
                       FROM tbl_recetas r
                       JOIN tbl_pacientes p ON r.id_paciente = p.id_paciente
+                      LEFT JOIN tbl_procedimientos_realizados pr ON r.id_procedimiento_realizado = pr.id_procedimiento_realizado
+                      LEFT JOIN tbl_planes_tratamiento pt ON pr.id_plan_tratamiento = pt.id_plan_tratamiento
+                      LEFT JOIN tbl_tratamientos t ON pr.id_tratamiento = t.id_tratamiento
+                      LEFT JOIN tbl_diagnosticos d ON pt.id_diagnostico = d.id_diagnostico
+                      LEFT JOIN tbl_recetas_detalle rd ON r.id_receta = rd.id_receta
                       ORDER BY r.fecha_emision DESC";
             $recetas = cargar_combo($query);
             echo json_encode($recetas);
@@ -75,10 +89,11 @@ switch ($metodo) {
             $data = json_decode(file_get_contents('php://input'), true);
 
             $id_paciente = sanear_entrada($data['id_paciente']);
+            $id_procedimiento_realizado = sanear_entrada($data['id_procedimiento_realizado']);
             $indicaciones_generales = sanear_entrada($data['indicaciones_generales']);
             $medicamentos = $data['medicamentos'];
 
-            if (empty($id_paciente) || empty($medicamentos)) {
+            if (empty($id_paciente) || empty($id_procedimiento_realizado) || empty($medicamentos)) {
                 http_response_code(400);
                 echo json_encode(['success' => false, 'message' => 'Faltan campos obligatorios para emitir la receta.']);
                 exit();
@@ -87,9 +102,9 @@ switch ($metodo) {
             $conexion->begin_transaction();
             try {
                 // Insertar en la tabla de recetas
-                $query_receta = "INSERT INTO tbl_recetas (id_paciente, indicaciones_generales) VALUES (?, ?)";
+                $query_receta = "INSERT INTO tbl_recetas (id_paciente, id_procedimiento_realizado, indicaciones_generales) VALUES (?, ?, ?)";
                 $stmt_receta = $conexion->prepare($query_receta);
-                $stmt_receta->bind_param("is", $id_paciente, $indicaciones_generales);
+                $stmt_receta->bind_param("iis", $id_paciente, $id_procedimiento_realizado, $indicaciones_generales);
                 $stmt_receta->execute();
                 $id_receta = $conexion->insert_id;
                 $stmt_receta->close();
