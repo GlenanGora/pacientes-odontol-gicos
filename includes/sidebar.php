@@ -5,8 +5,11 @@
  * Autor: Gemini
  */
 ?>
-<nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-    <div class="position-sticky pt-3 sidebar-sticky">
+<nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+    <div class="position-sticky d-flex flex-column h-100">
+        <div class="sidebar-header">
+            VELZON
+        </div>
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link <?php echo ($page == 'dashboard') ? 'active' : ''; ?>" aria-current="page" href="?page=dashboard">
@@ -27,7 +30,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?php echo (str_contains($page, 'diagnosticos/gestionar')) ? 'active' : ''; ?>" href="?page=diagnosticos/gestionar">
+                <a class="nav-link <?php echo (str_contains($page, 'diagnosticos')) ? 'active' : ''; ?>" href="?page=diagnosticos/gestionar">
                     <span class="me-2">&#129661;</span> <!-- Icono de diente -->
                     Diagnósticos y Tratamientos
                 </a>
@@ -47,28 +50,3 @@
         </ul>
     </div>
 </nav>
-
-<style>
-    .sidebar {
-        min-height: 100vh; /* Altura completa de la ventana */
-        background-color: #f8f9fa; /* Color de fondo claro */
-    }
-    .sidebar .nav-link {
-        font-weight: 500;
-        color: #333;
-    }
-    .sidebar .nav-link.active {
-        color: #fff;
-        background-color: #0d6efd;
-    }
-    .sidebar .nav-link:hover:not(.active) {
-        background-color: #e9ecef;
-        color: #0d6efd;
-    }
-    .sidebar-sticky {
-        top: 0; /* Asegura que el menú lateral se mantenga visible */
-    }
-    .navbar-brand {
-        font-weight: bold;
-    }
-</style>
