@@ -25,20 +25,20 @@
     <div class="col-md-6 mb-4">
         <div class="card">
             <div class="card-header">
-                Pacientes por Sexo
+                Ingresos por Mes
             </div>
             <div class="card-body">
-                <canvas id="pacientesSexoChart"></canvas>
+                <canvas id="ingresosMesChart"></canvas>
             </div>
         </div>
     </div>
     <div class="col-md-6 mb-4">
         <div class="card">
             <div class="card-header">
-                Estadísticas de Diagnósticos
+                Deudas por Mes
             </div>
             <div class="card-body">
-                <canvas id="diagnosticosChart"></canvas>
+                <canvas id="deudasMesChart"></canvas>
             </div>
         </div>
     </div>
@@ -107,7 +107,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const filtroAnioSelect = document.getElementById('filtro-anio');
-        let pacientesSexoChart, diagnosticosChart, procedimientosMesChart;
+        let ingresosMesChart, deudasMesChart, procedimientosMesChart;
 
         // Función para cargar los datos de la API
         function cargarDatosReportes() {
@@ -115,52 +115,52 @@
             fetch(`api/reportes.php?anio=${anio}`)
                 .then(response => response.json())
                 .then(data => {
-                    // Gráfico de pacientes por sexo (Barras Horizontales)
-                    if (pacientesSexoChart) {
-                        pacientesSexoChart.destroy();
-                    }
-                    const pacientesSexoCtx = document.getElementById('pacientesSexoChart').getContext('2d');
-                    pacientesSexoChart = new Chart(pacientesSexoCtx, {
-                        type: 'bar',
+                    // Gráfico de ingresos por mes
+                    if (ingresosMesChart) { ingresosMesChart.destroy(); }
+                    const ingresosMesCtx = document.getElementById('ingresosMesChart').getContext('2d');
+                    ingresosMesChart = new Chart(ingresosMesCtx, {
+                        type: 'line',
                         data: {
-                            labels: data.pacientes_por_sexo.map(p => p.nombre_sexo),
+                            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
                             datasets: [{
-                                label: 'Pacientes',
-                                data: data.pacientes_por_sexo.map(p => p.conteo),
-                                backgroundColor: ['#0D6EFD', '#DC3545', '#6C757D'],
+                                label: 'Ingresos',
+                                data: data.ingresos_anuales,
+                                borderColor: '#198754',
+                                backgroundColor: 'rgba(25, 135, 84, 0.2)',
+                                fill: true,
+                                tension: 0.4
                             }]
                         },
                         options: {
-                            indexAxis: 'y', // Hace las barras horizontales
-                            responsive: true
+                            responsive: true,
+                            scales: { y: { beginAtZero: true } }
                         }
                     });
 
-                    // Gráfico de estadísticas de diagnósticos
-                    if (diagnosticosChart) {
-                        diagnosticosChart.destroy();
-                    }
-                    const diagnosticosCtx = document.getElementById('diagnosticosChart').getContext('2d');
-                    diagnosticosChart = new Chart(diagnosticosCtx, {
-                        type: 'doughnut',
+                    // Gráfico de deudas por mes
+                    if (deudasMesChart) { deudasMesChart.destroy(); }
+                    const deudasMesCtx = document.getElementById('deudasMesChart').getContext('2d');
+                    deudasMesChart = new Chart(deudasMesCtx, {
+                        type: 'line',
                         data: {
-                            labels: data.estadisticas_diagnostico.map(d => d.nombre_diagnostico),
+                            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
                             datasets: [{
-                                data: data.estadisticas_diagnostico.map(d => d.conteo),
-                                backgroundColor: [
-                                    '#0d6efd', '#fd7e14', '#6c757d', '#28a745', '#17a2b8', '#ffc107'
-                                ],
+                                label: 'Deudas',
+                                data: data.deudas_anuales,
+                                borderColor: '#dc3545',
+                                backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                                fill: true,
+                                tension: 0.4
                             }]
                         },
                         options: {
-                            responsive: true
+                            responsive: true,
+                            scales: { y: { beginAtZero: true } }
                         }
                     });
 
                     // Gráfico de procedimientos más realizados por mes
-                    if (procedimientosMesChart) {
-                        procedimientosMesChart.destroy();
-                    }
+                    if (procedimientosMesChart) { procedimientosMesChart.destroy(); }
                     const procedimientosMesCtx = document.getElementById('procedimientosMesChart').getContext('2d');
                     const procedimientosData = {};
                     data.procedimientos_por_mes.forEach(item => {

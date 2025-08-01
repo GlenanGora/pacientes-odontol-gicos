@@ -28,27 +28,85 @@ $metodo = $_SERVER['REQUEST_METHOD'];
 switch ($metodo) {
     case 'GET':
         if (isset($_GET['action']) && $_GET['action'] == 'listar') {
-            // Lógica para listar el historial de recetas
-            $query = "SELECT 
-                        r.id_receta, 
-                        r.fecha_emision, 
-                        CONCAT(p.nombres, ' ', p.apellidos) AS nombre_paciente,
-                        t.nombre_tratamiento,
-                        d.nombre_diagnostico,
-                        rd.nombre_medicamento,
-                        rd.dosis,
-                        rd.frecuencia,
-                        rd.duracion
-                      FROM tbl_recetas r
-                      JOIN tbl_pacientes p ON r.id_paciente = p.id_paciente
-                      LEFT JOIN tbl_procedimientos_realizados pr ON r.id_procedimiento_realizado = pr.id_procedimiento_realizado
-                      LEFT JOIN tbl_planes_tratamiento pt ON pr.id_plan_tratamiento = pt.id_plan_tratamiento
-                      LEFT JOIN tbl_tratamientos t ON pr.id_tratamiento = t.id_tratamiento
-                      LEFT JOIN tbl_diagnosticos d ON pt.id_diagnostico = d.id_diagnostico
-                      LEFT JOIN tbl_recetas_detalle rd ON r.id_receta = rd.id_receta
-                      ORDER BY r.fecha_emision DESC";
-            $recetas = cargar_combo($query);
-            echo json_encode($recetas);
+            $filtros_sql = [];
+            $params = [];
+            $types = "";
+            $limit = isset($_GET['limit']) ? sanear_entrada($_GET['limit']) : 50;
+            $page = isset($_GET['page']) ? sanear_entrada($_GET['page']) : 1;
+            $offset = ($page - 1) * $limit;
+            
+            // Lógica para listar el historial de recetas con filtros
+            if (isset($_GET['paciente']) && !empty($_GET['paciente'])) {
+                $paciente = sanear_entrada($_GET['paciente']);
+                $filtros_sql[] = "CONCAT(p.nombres, ' ', p.apellidos) LIKE ?";
+                $params[] = "%$paciente%";
+                $types .= "s";
+            }
+
+            if (isset($_GET['fecha']) && !empty($_GET['fecha'])) {
+                $fecha = sanear_entrada($_GET['fecha']);
+                $filtros_sql[] = "r.fecha_emision LIKE ?";
+                $params[] = "$fecha%";
+                $types .= "s";
+            }
+            
+            $where_clause = !empty($filtros_sql) ? " WHERE " . implode(" AND ", $filtros_sql) : "";
+
+            // Consulta para obtener el total de registros
+            $query_total = "SELECT COUNT(*) AS total
+                            FROM tbl_recetas r
+                            JOIN tbl_recetas_detalle rd ON r.id_receta = rd.id_receta
+                            JOIN tbl_pacientes p ON r.id_paciente = p.id_paciente
+                            LEFT JOIN tbl_procedimientos_realizados pr ON r.id_procedimiento_realizado = pr.id_procedimiento_realizado
+                            LEFT JOIN tbl_planes_tratamiento pt ON pr.id_plan_tratamiento = pt.id_plan_tratamiento
+                            LEFT JOIN tbl_tratamientos t ON pr.id_tratamiento = t.id_tratamiento
+                            LEFT JOIN tbl_diagnosticos d ON pt.id_diagnostico = d.id_diagnostico" . $where_clause;
+            
+            $stmt_total = $conexion->prepare($query_total);
+            if (!empty($params)) {
+                $stmt_total->bind_param($types, ...$params);
+            }
+            $stmt_total->execute();
+            $total_records = $stmt_total->get_result()->fetch_assoc()['total'];
+            $stmt_total->close();
+
+            // Consulta para obtener los datos paginados
+            $query_data = "SELECT 
+                                r.id_receta, 
+                                r.fecha_emision, 
+                                CONCAT(p.nombres, ' ', p.apellidos) AS nombre_paciente,
+                                t.nombre_tratamiento,
+                                d.nombre_diagnostico,
+                                rd.nombre_medicamento,
+                                rd.dosis,
+                                rd.frecuencia,
+                                rd.duracion
+                           FROM tbl_recetas r
+                           JOIN tbl_recetas_detalle rd ON r.id_receta = rd.id_receta
+                           JOIN tbl_pacientes p ON r.id_paciente = p.id_paciente
+                           LEFT JOIN tbl_procedimientos_realizados pr ON r.id_procedimiento_realizado = pr.id_procedimiento_realizado
+                           LEFT JOIN tbl_planes_tratamiento pt ON pr.id_plan_tratamiento = pt.id_plan_tratamiento
+                           LEFT JOIN tbl_tratamientos t ON pr.id_tratamiento = t.id_tratamiento
+                           LEFT JOIN tbl_diagnosticos d ON pt.id_diagnostico = d.id_diagnostico"
+                           . $where_clause . 
+                           " ORDER BY r.fecha_emision DESC
+                           LIMIT ?, ?";
+            
+            $params_data = array_merge($params, [$offset, $limit]);
+            $types_data = $types . "ii";
+
+            $stmt_data = $conexion->prepare($query_data);
+            $stmt_data->bind_param($types_data, ...$params_data);
+            $stmt_data->execute();
+            $resultado_data = $stmt_data->get_result();
+            $recetas = [];
+            while ($fila = $resultado_data->fetch_assoc()) {
+                $recetas[] = $fila;
+            }
+            $stmt_data->close();
+            
+            echo json_encode(['data' => $recetas, 'total' => $total_records]);
+
         } elseif (isset($_GET['action']) && $_GET['action'] == 'detalle' && isset($_GET['id_receta'])) {
             // Lógica para obtener los detalles de una receta
             $id_receta = sanear_entrada($_GET['id_receta']);

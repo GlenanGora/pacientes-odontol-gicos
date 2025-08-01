@@ -23,14 +23,14 @@ body {
 
 /* Estilos de la Barra de Navegación Superior */
 .navbar {
-    background-color: #ffffff !important;
+    background-color: #198754 !important;
     border-bottom: 1px solid #dee2e6;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 .navbar-brand {
     font-weight: 700;
     font-size: 1.5rem;
-    color: #323A5B;
+    color: #ffffff;
 }
 .navbar-brand:hover {
     color: #495057;
@@ -103,7 +103,7 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateY(-5px);
 }
 .card-header {
-    background-color: #ffffff;
+    background-color: #E8E8E8;
     color: #343a40;
     font-weight: 600;
     border-bottom: 1px solid #dee2e6;
@@ -123,8 +123,8 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 .btn-primary {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
+    background-color: #323A5B;
+    border-color: #3A4469;
     border-radius: 8px;
     font-weight: 600;
 }
@@ -166,7 +166,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Estilos de Modales */
 .modal-header {
-    background-color: #0d6efd;
+    background-color: #D4D4D4;
     color: white;
     border-bottom: none;
     border-radius: 12px 12px 0 0;
