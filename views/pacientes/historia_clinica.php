@@ -167,10 +167,99 @@ if (!$id_paciente) {
                         </select>
                     </div>
                     <div class="mb-3">
+                        <label for="costo-procedimiento" class="form-label">Costo del Procedimiento</label>
+                        <input type="number" class="form-control" id="costo-procedimiento" name="costo_personalizado" min="0" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
                         <label for="notas_evolucion" class="form-label">Notas de Evolución</label>
                         <textarea class="form-control" id="notas_evolucion" name="notas_evolucion" rows="3"></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary">Registrar Procedimiento</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar procedimiento -->
+<div class="modal fade" id="editarProcedimientoModal" tabindex="-1" aria-labelledby="editarProcedimientoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarProcedimientoModalLabel">Editar Procedimiento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-editar-procedimiento">
+                    <input type="hidden" name="id_procedimiento_realizado" id="edit_id_procedimiento_realizado">
+                    <div class="mb-3">
+                        <label for="edit_costo_procedimiento" class="form-label">Costo del Procedimiento</label>
+                        <input type="number" class="form-control" id="edit_costo_procedimiento" name="costo_personalizado" min="0" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_notas_evolucion" class="form-label">Notas de Evolución</label>
+                        <textarea class="form-control" id="edit_notas_evolucion" name="notas_evolucion" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para generar presupuesto -->
+<div class="modal fade" id="presupuestoModal" tabindex="-1" aria-labelledby="presupuestoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="presupuestoModalLabel">Presupuesto del Plan de Tratamiento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="presupuesto-detalle">
+                    <!-- El presupuesto se cargará aquí con JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="btn-imprimir-presupuesto">Imprimir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para registrar pago -->
+<div class="modal fade" id="pagoModal" tabindex="-1" aria-labelledby="pagoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pagoModalLabel">Registrar Pago</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-pago">
+                    <input type="hidden" id="pago_id_paciente" name="id_paciente" value="<?php echo $id_paciente; ?>">
+                    <input type="hidden" id="pago_id_procedimiento_realizado" name="id_procedimiento_realizado">
+                    <div class="mb-3">
+                        <label for="pago-monto" class="form-label">Monto</label>
+                        <input type="number" class="form-control" id="pago-monto" name="monto" min="0" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="pago-metodo" class="form-label">Método de Pago</label>
+                        <select class="form-select" id="pago-metodo" name="metodo_pago" required>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Tarjeta">Tarjeta</option>
+                            <option value="Transferencia">Transferencia</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="pago-tipo" class="form-label">Tipo de Pago</label>
+                        <select class="form-select" id="pago-tipo" name="tipo_pago" required>
+                            <option value="adelanto">Adelanto</option>
+                            <option value="pago final">Pago Final</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Registrar Pago</button>
                 </form>
             </div>
         </div>
@@ -195,6 +284,7 @@ if (!$id_paciente) {
         const formNuevoProcedimiento = document.getElementById('form-nuevo-procedimiento');
         const idPlanTratamientoInput = document.getElementById('id_plan_tratamiento');
         const tratamientoSelect = document.getElementById('tratamiento');
+        const costoProcedimientoInput = document.getElementById('costo-procedimiento');
         
         // Elementos para el modal de edición de historial médico
         const btnEditarHistorial = document.getElementById('btn-editar-historial');
@@ -204,6 +294,24 @@ if (!$id_paciente) {
         const alergiasTextarea = document.getElementById('alergias');
         const medicacionTextarea = document.getElementById('medicacion');
         const habitosTextarea = document.getElementById('habitos');
+
+        // Elementos para el modal de presupuesto
+        const presupuestoModal = new bootstrap.Modal(document.getElementById('presupuestoModal'));
+        const presupuestoDetalleDiv = document.getElementById('presupuesto-detalle');
+        const btnImprimirPresupuesto = document.getElementById('btn-imprimir-presupuesto');
+
+        // Elementos para el modal de pago
+        const pagoModal = new bootstrap.Modal(document.getElementById('pagoModal'));
+        const formPago = document.getElementById('form-pago');
+        const pagoIdProcedimientoRealizadoInput = document.getElementById('pago_id_procedimiento_realizado');
+        const pagoMontoInput = document.getElementById('pago-monto');
+
+        // Elementos para el modal de edición de procedimiento
+        const editarProcedimientoModal = new bootstrap.Modal(document.getElementById('editarProcedimientoModal'));
+        const formEditarProcedimiento = document.getElementById('form-editar-procedimiento');
+        const editIdProcedimientoRealizadoInput = document.getElementById('edit_id_procedimiento_realizado');
+        const editCostoProcedimientoInput = document.getElementById('edit_costo_procedimiento');
+        const editNotasEvolucionInput = document.getElementById('edit_notas_evolucion');
 
 
         // Función para cargar todos los datos de un paciente
@@ -252,22 +360,47 @@ if (!$id_paciente) {
                         planesTratamiento.forEach((plan, index) => {
                             const collapseId = `collapsePlan${index}`;
                             const headingId = `headingPlan${index}`;
-                            const procedimientosHtml = plan.procedimientos.map(proc => `
-                                <li><strong>${proc.nombre_tratamiento}</strong> - ${proc.fecha_realizacion} - Notas: ${proc.notas_evolucion || 'N/A'}</li>
-                            `).join('');
+                            let procedimientosHtml = '';
+                            let costoTotalPlan = 0;
+
+                            if (plan.procedimientos) {
+                                plan.procedimientos.forEach(proc => {
+                                    costoTotalPlan += parseFloat(proc.costo_personalizado);
+                                    let pagosProc = 0;
+                                    if (proc.pagos) {
+                                        proc.pagos.forEach(p => {
+                                            pagosProc += parseFloat(p.monto);
+                                        });
+                                    }
+                                    const saldoPendienteProc = proc.costo_personalizado - pagosProc;
+                                    procedimientosHtml += `
+                                        <li>
+                                            <strong>${proc.nombre_tratamiento}</strong> - Costo: S/. ${proc.costo_personalizado} - Notas: ${proc.notas_evolucion || 'N/A'} - Pagado: S/. ${pagosProc.toFixed(2)} - Saldo: S/. ${saldoPendienteProc.toFixed(2)}
+                                            <div class="btn-group" role="group">
+                                                <button class="btn btn-sm btn-warning ms-2" onclick="mostrarModalEditarProcedimiento(${proc.id_procedimiento_realizado}, ${proc.costo_personalizado}, '${proc.notas_evolucion || ''}')">&#9998;</button>
+                                                <button class="btn btn-sm btn-danger ms-2" onclick="eliminarProcedimiento(${proc.id_procedimiento_realizado})">&#128465;</button>
+                                                <button class="btn btn-sm btn-primary ms-2" ${saldoPendienteProc <= 0 ? 'disabled' : ''} onclick="mostrarModalPago(${proc.id_procedimiento_realizado})">&#128179; Registrar Pago</button>
+                                            </div>
+                                        </li>
+                                    `;
+                                });
+                            }
                             const planHtml = `
                                 <div class="accordion-item">
                                     <h2 class="accordion-header" id="${headingId}">
                                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}" aria-expanded="false" aria-controls="${collapseId}">
-                                            Plan de Tratamiento #${plan.id_plan_tratamiento} (${plan.estado_plan}) - Creado el ${plan.fecha_creacion}
+                                            Plan #${plan.id_plan_tratamiento} (${plan.estado_plan}) - Total: S/. ${costoTotalPlan.toFixed(2)}
                                         </button>
                                     </h2>
                                     <div id="${collapseId}" class="accordion-collapse collapse" aria-labelledby="${headingId}" data-bs-parent="#planes-tratamiento-accordion">
                                         <div class="accordion-body">
+                                            <div class="d-flex justify-content-end mb-3">
+                                                <button class="btn btn-sm btn-danger me-2" onclick="eliminarPlan(${plan.id_plan_tratamiento})">&#128465; Eliminar Plan</button>
+                                                <button class="btn btn-sm btn-success me-2" onclick="mostrarModalProcedimiento(${plan.id_plan_tratamiento})">&#10133; Procedimiento</button>
+                                                <button class="btn btn-sm btn-info text-white me-2" onclick="generarPresupuesto(${plan.id_plan_tratamiento})">&#128220; Presupuesto</button>
+                                            </div>
                                             <h5>Procedimientos Realizados:</h5>
-                                            <ul>${procedimientosHtml}</ul>
-                                            <button class="btn btn-sm btn-success mt-2" onclick="mostrarModalProcedimiento(${plan.id_plan_tratamiento})">Registrar Procedimiento</button>
-                                            <button class="btn btn-sm btn-info text-white mt-2" onclick="generarPresupuesto(${plan.id_plan_tratamiento})">Generar Presupuesto</button>
+                                            <ul>${procedimientosHtml || '<li>No hay procedimientos registrados.</li>'}</ul>
                                         </div>
                                     </div>
                                 </div>
@@ -285,7 +418,7 @@ if (!$id_paciente) {
                             const row = `
                                 <tr>
                                     <td>${pago.fecha_pago}</td>
-                                    <td>${pago.id_plan_tratamiento || 'Pago puntual'}</td>
+                                    <td>${pago.id_plan_tratamiento ? `Plan #${pago.id_plan_tratamiento}` : 'Pago puntual'}</td>
                                     <td>S/. ${pago.monto}</td>
                                     <td>${pago.metodo_pago}</td>
                                     <td>${pago.tipo_pago}</td>
@@ -387,6 +520,27 @@ if (!$id_paciente) {
             idPlanTratamientoInput.value = idPlan;
             nuevoProcedimientoModal.show();
         };
+        
+        // Función global para mostrar el modal de editar procedimiento
+        window.mostrarModalEditarProcedimiento = function(idProc, costo, notas) {
+            editIdProcedimientoRealizadoInput.value = idProc;
+            editCostoProcedimientoInput.value = costo;
+            editNotasEvolucionInput.value = notas;
+            editarProcedimientoModal.show();
+        };
+
+        // Evento para cargar el costo del tratamiento seleccionado
+        tratamientoSelect.addEventListener('change', function() {
+            const idTratamiento = this.value;
+            if (idTratamiento) {
+                fetch(`api/tratamientos.php?action=obtener&id=${idTratamiento}`)
+                    .then(response => response.json())
+                    .then(tratamiento => {
+                        costoProcedimientoInput.value = tratamiento.costo_base;
+                    })
+                    .catch(error => console.error('Error al obtener costo del tratamiento:', error));
+            }
+        });
 
         // Manejar el envío del formulario de nuevo procedimiento
         formNuevoProcedimiento.addEventListener('submit', function(e) {
@@ -412,11 +566,211 @@ if (!$id_paciente) {
             })
             .catch(error => console.error('Error al registrar procedimiento:', error));
         });
+        
+        // Manejar el envío del formulario de edición de procedimiento
+        formEditarProcedimiento.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(formEditarProcedimiento);
+            const data = Object.fromEntries(formData.entries());
+
+            fetch('api/atenciones.php?action=editar_procedimiento', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert('Procedimiento actualizado con éxito.');
+                    editarProcedimientoModal.hide();
+                    cargarHistorialPaciente();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            })
+            .catch(error => console.error('Error al editar procedimiento:', error));
+        });
+        
+        // Función global para eliminar un procedimiento
+        window.eliminarProcedimiento = function(idProc) {
+            if (confirm('¿Está seguro de que desea eliminar este procedimiento?')) {
+                fetch(`api/atenciones.php?action=eliminar_procedimiento&id=${idProc}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('Procedimiento eliminado con éxito.');
+                        cargarHistorialPaciente();
+                    } else {
+                        alert('Error: ' + result.message);
+                    }
+                })
+                .catch(error => console.error('Error al eliminar procedimiento:', error));
+            }
+        };
+
+        // Función global para eliminar un plan
+        window.eliminarPlan = function(idPlan) {
+            if (confirm('¿Está seguro de que desea eliminar este plan de tratamiento? Se eliminarán todos los procedimientos y pagos asociados.')) {
+                fetch(`api/atenciones.php?action=eliminar_plan_tratamiento&id=${idPlan}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('Plan de tratamiento eliminado con éxito.');
+                        cargarHistorialPaciente();
+                    } else {
+                        alert('Error: ' + result.message);
+                    }
+                })
+                .catch(error => console.error('Error al eliminar el plan:', error));
+            }
+        };
+
+        // Función global para mostrar el modal de pago
+        window.mostrarModalPago = function(idProc, saldo) {
+            if (saldo <= 0) {
+                alert('La deuda de este procedimiento ya ha sido cancelada.');
+                return;
+            }
+            pagoIdProcedimientoRealizadoInput.value = idProc;
+            pagoModal.show();
+        };
+        
+        // Manejar el envío del formulario de pago
+        formPago.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(formPago);
+            const data = Object.fromEntries(formData.entries());
+            
+            fetch('api/atenciones.php?action=registrar_pago', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('La respuesta de la red no fue correcta.');
+                }
+                return response.json();
+            })
+            .then(result => {
+                if (result.success) {
+                    alert('Pago registrado con éxito.');
+                    pagoModal.hide();
+                    formPago.reset();
+                    cargarHistorialPaciente(); // Recargar el historial
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            })
+            .catch(error => console.error('Error al registrar pago:', error));
+        });
 
         // Función global para generar presupuesto
         window.generarPresupuesto = function(idPlan) {
-            // Lógica para generar el presupuesto
-            alert(`Funcionalidad para generar presupuesto para el Plan #${idPlan} no implementada.`);
+            fetch(`api/atenciones.php?action=generar_presupuesto&id_plan_tratamiento=${idPlan}`)
+                .then(response => response.json())
+                .then(presupuesto => {
+                    const clinica = presupuesto.clinica;
+                    const paciente = presupuesto.paciente;
+                    const tratamientos = presupuesto.tratamientos;
+                    const pagos = presupuesto.pagos;
+                    let costoTotal = 0;
+                    let pagosTotales = 0;
+
+                    let tratamientosHtml = '';
+                    tratamientos.forEach(t => {
+                        costoTotal += parseFloat(t.costo_personalizado);
+                        tratamientosHtml += `
+                            <tr>
+                                <td>${t.nombre_tratamiento}</td>
+                                <td>S/. ${t.costo_personalizado}</td>
+                            </tr>
+                        `;
+                    });
+
+                    let pagosHtml = '';
+                    pagos.forEach(p => {
+                        pagosTotales += parseFloat(p.monto);
+                        pagosHtml += `
+                            <tr>
+                                <td>${p.fecha_pago}</td>
+                                <td>S/. ${p.monto}</td>
+                                <td>${p.metodo_pago}</td>
+                            </tr>
+                        `;
+                    });
+
+                    const saldoPendiente = costoTotal - pagosTotales;
+
+                    presupuestoDetalleDiv.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Clínica</h5>
+                                <p><strong>Nombre:</strong> ${clinica.nombre}</p>
+                                <p><strong>Dirección:</strong> ${clinica.direccion}</p>
+                                <p><strong>Teléfono:</strong> ${clinica.telefono}</p>
+                                <p><strong>Doctor(a):</strong> ${clinica.nombre_doctor}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Paciente</h5>
+                                <p><strong>Nombre:</strong> ${paciente.nombres} ${paciente.apellidos}</p>
+                                <p><strong>DNI:</strong> ${paciente.numero_documento}</p>
+                                <p><strong>Teléfono:</strong> ${paciente.telefono || 'N/A'}</p>
+                                <p><strong>Correo:</strong> ${paciente.correo_electronico || 'N/A'}</p>
+                            </div>
+                        </div>
+                        <h5 class="mt-4">Detalle del Tratamiento (Plan #${idPlan})</h5>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Tratamiento</th>
+                                    <th>Costo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tratamientosHtml}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="1" class="text-end">Costo Total:</th>
+                                    <th>S/. ${costoTotal.toFixed(2)}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <h5 class="mt-4">Historial de Pagos</h5>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Monto</th>
+                                    <th>Método</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${pagosHtml || '<tr><td colspan="3" class="text-center">No hay pagos registrados.</td></tr>'}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="1" class="text-end">Total Pagado:</th>
+                                    <th>S/. ${pagosTotales.toFixed(2)}</th>
+                                </tr>
+                                <tr>
+                                    <th colspan="1" class="text-end">Saldo Pendiente:</th>
+                                    <th>S/. ${saldoPendiente.toFixed(2)}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    `;
+                    presupuestoModal.show();
+                })
+                .catch(error => {
+                    console.error('Error al generar el presupuesto:', error);
+                    alert('Error al generar el presupuesto.');
+                });
         };
 
 

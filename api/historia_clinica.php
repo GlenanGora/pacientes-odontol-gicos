@@ -6,8 +6,23 @@
  */
 
 header('Content-Type: application/json; charset=utf-8');
-require_once '../core/functions.php';
-require_once '../core/db.php';
+
+// Configuración de manejo de errores para evitar que se imprima HTML
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    // Convertir el error a una excepción para poder capturarlo
+    throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
+});
+
+// Incluir archivos necesarios. Usamos un bloque try-catch para manejar errores de inclusión
+try {
+    require_once '../core/functions.php';
+    require_once '../core/db.php';
+    require_once '../core/config.php';
+} catch (ErrorException $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Error al cargar dependencias: ' . $e->getMessage()]);
+    exit();
+}
 
 $metodo = $_SERVER['REQUEST_METHOD'];
 
@@ -35,7 +50,7 @@ switch ($metodo) {
             $datos_historial['historial_medico'] = $resultado_historial->fetch_assoc();
             $stmt_historial->close();
 
-            // Obtener planes de tratamiento y sus procedimientos
+            // Obtener planes de tratamiento
             $query_planes = "SELECT * FROM tbl_planes_tratamiento WHERE id_paciente = ? ORDER BY fecha_creacion DESC";
             $stmt_planes = $conexion->prepare($query_planes);
             $stmt_planes->bind_param("i", $id_paciente);
@@ -44,13 +59,27 @@ switch ($metodo) {
             $planes = [];
             while ($plan = $resultado_planes->fetch_assoc()) {
                 $id_plan = $plan['id_plan_tratamiento'];
-                $query_procedimientos = "SELECT pr.*, t.nombre_tratamiento FROM tbl_procedimientos_realizados pr JOIN tbl_tratamientos t ON pr.id_tratamiento = t.id_tratamiento WHERE id_plan_tratamiento = ?";
+                
+                // Obtener procedimientos del plan
+                $query_procedimientos = "SELECT pr.id_procedimiento_realizado, t.nombre_tratamiento, pr.costo_personalizado, pr.notas_evolucion FROM tbl_procedimientos_realizados pr JOIN tbl_tratamientos t ON pr.id_tratamiento = t.id_tratamiento WHERE id_plan_tratamiento = ?";
                 $stmt_procedimientos = $conexion->prepare($query_procedimientos);
                 $stmt_procedimientos->bind_param("i", $id_plan);
                 $stmt_procedimientos->execute();
                 $resultado_procedimientos = $stmt_procedimientos->get_result();
                 $procedimientos = [];
                 while ($proc = $resultado_procedimientos->fetch_assoc()) {
+                    // Obtener pagos de cada procedimiento
+                    $query_pagos_proc = "SELECT monto, fecha_pago, metodo_pago, tipo_pago FROM tbl_pagos WHERE id_procedimiento_realizado = ?";
+                    $stmt_pagos_proc = $conexion->prepare($query_pagos_proc);
+                    $stmt_pagos_proc->bind_param("i", $proc['id_procedimiento_realizado']);
+                    $stmt_pagos_proc->execute();
+                    $resultado_pagos_proc = $stmt_pagos_proc->get_result();
+                    $pagos_proc = [];
+                    while($pago = $resultado_pagos_proc->fetch_assoc()) {
+                        $pagos_proc[] = $pago;
+                    }
+                    $stmt_pagos_proc->close();
+                    $proc['pagos'] = $pagos_proc;
                     $procedimientos[] = $proc;
                 }
                 $stmt_procedimientos->close();
@@ -91,7 +120,7 @@ switch ($metodo) {
         $alergias = sanear_entrada($data['alergias']);
         $medicacion = sanear_entrada($data['medicacion_actual']);
         $habitos = sanear_entrada($data['habitos']);
-        
+
         $conexion->begin_transaction();
         try {
             // Intenta actualizar el registro existente
