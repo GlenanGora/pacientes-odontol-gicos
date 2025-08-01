@@ -51,7 +51,7 @@ switch ($metodo) {
             $stmt_historial->close();
 
             // Obtener planes de tratamiento
-            $query_planes = "SELECT * FROM tbl_planes_tratamiento WHERE id_paciente = ? ORDER BY fecha_creacion DESC";
+            $query_planes = "SELECT pt.*, dt.nombre_diagnostico FROM tbl_planes_tratamiento pt LEFT JOIN tbl_diagnosticos dt ON pt.id_diagnostico = dt.id_diagnostico WHERE pt.id_paciente = ? ORDER BY fecha_creacion DESC";
             $stmt_planes = $conexion->prepare($query_planes);
             $stmt_planes->bind_param("i", $id_paciente);
             $stmt_planes->execute();
@@ -61,7 +61,7 @@ switch ($metodo) {
                 $id_plan = $plan['id_plan_tratamiento'];
                 
                 // Obtener procedimientos del plan
-                $query_procedimientos = "SELECT pr.id_procedimiento_realizado, t.nombre_tratamiento, pr.costo_personalizado, pr.notas_evolucion FROM tbl_procedimientos_realizados pr JOIN tbl_tratamientos t ON pr.id_tratamiento = t.id_tratamiento WHERE id_plan_tratamiento = ?";
+                $query_procedimientos = "SELECT pr.id_procedimiento_realizado, t.nombre_tratamiento, pr.costo_personalizado, pr.notas_evolucion, pr.fecha_realizacion FROM tbl_procedimientos_realizados pr JOIN tbl_tratamientos t ON pr.id_tratamiento = t.id_tratamiento WHERE id_plan_tratamiento = ?";
                 $stmt_procedimientos = $conexion->prepare($query_procedimientos);
                 $stmt_procedimientos->bind_param("i", $id_plan);
                 $stmt_procedimientos->execute();
@@ -90,7 +90,7 @@ switch ($metodo) {
             $datos_historial['planes_tratamiento'] = $planes;
 
             // Obtener historial de pagos
-            $query_pagos = "SELECT * FROM tbl_pagos WHERE id_paciente = ? ORDER BY fecha_pago DESC";
+            $query_pagos = "SELECT p.*, pr.id_plan_tratamiento, t.nombre_tratamiento FROM tbl_pagos p JOIN tbl_procedimientos_realizados pr ON p.id_procedimiento_realizado = pr.id_procedimiento_realizado JOIN tbl_tratamientos t ON pr.id_tratamiento = t.id_tratamiento WHERE p.id_paciente = ? ORDER BY p.fecha_pago DESC";
             $stmt_pagos = $conexion->prepare($query_pagos);
             $stmt_pagos->bind_param("i", $id_paciente);
             $stmt_pagos->execute();

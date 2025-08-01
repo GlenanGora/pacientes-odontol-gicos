@@ -55,7 +55,7 @@ if (!$id_paciente) {
         </button>
     </div>
     <div class="card-body">
-        <div class="accordion" id="planes-tratamiento-accordion">
+        <div id="planes-tratamiento-container">
             <!-- Los planes de tratamiento se cargarán aquí con JavaScript -->
         </div>
     </div>
@@ -250,6 +250,7 @@ if (!$id_paciente) {
                             <option value="Efectivo">Efectivo</option>
                             <option value="Tarjeta">Tarjeta</option>
                             <option value="Transferencia">Transferencia</option>
+                            <option value="Yape">Yape</option>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -266,6 +267,24 @@ if (!$id_paciente) {
     </div>
 </div>
 
+<!-- Modal para ver observaciones -->
+<div class="modal fade" id="observacionesModal" tabindex="-1" aria-labelledby="observacionesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="observacionesModalLabel">Observaciones del Plan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="observaciones-detalle">
+                <!-- Las observaciones se cargarán aquí -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -273,7 +292,7 @@ if (!$id_paciente) {
         const pacienteNombreCompletoSpan = document.getElementById('paciente-nombre-completo');
         const datosPacienteDiv = document.getElementById('datos-paciente');
         const historialMedicoDiv = document.getElementById('historial-medico');
-        const planesTratamientoAccordion = document.getElementById('planes-tratamiento-accordion');
+        const planesTratamientoContainer = document.getElementById('planes-tratamiento-container');
         const historialPagosBody = document.getElementById('historial-pagos-body');
         const btnNuevoTratamiento = document.getElementById('btn-nuevo-tratamiento');
         const nuevoTratamientoModal = new bootstrap.Modal(document.getElementById('nuevoTratamientoModal'));
@@ -313,6 +332,9 @@ if (!$id_paciente) {
         const editCostoProcedimientoInput = document.getElementById('edit_costo_procedimiento');
         const editNotasEvolucionInput = document.getElementById('edit_notas_evolucion');
 
+        // Elementos para el modal de observaciones
+        const observacionesModal = new bootstrap.Modal(document.getElementById('observacionesModal'));
+        const observacionesDetalleDiv = document.getElementById('observaciones-detalle');
 
         // Función para cargar todos los datos de un paciente
         function cargarHistorialPaciente() {
@@ -355,11 +377,9 @@ if (!$id_paciente) {
                     }
 
                     // Cargar planes de tratamiento (RF3)
-                    planesTratamientoAccordion.innerHTML = '';
+                    planesTratamientoContainer.innerHTML = '';
                     if (planesTratamiento && planesTratamiento.length > 0) {
                         planesTratamiento.forEach((plan, index) => {
-                            const collapseId = `collapsePlan${index}`;
-                            const headingId = `headingPlan${index}`;
                             let procedimientosHtml = '';
                             let costoTotalPlan = 0;
 
@@ -373,42 +393,55 @@ if (!$id_paciente) {
                                         });
                                     }
                                     const saldoPendienteProc = proc.costo_personalizado - pagosProc;
+
+                                    let saldoColor = '';
+                                    if (saldoPendienteProc === 0) {
+                                        saldoColor = '#198754';
+                                    } else if (saldoPendienteProc > 0) {
+                                        saldoColor = '#D43343';
+                                    } else {
+                                        saldoColor = '#0D6EFD';
+                                    }
+
                                     procedimientosHtml += `
-                                        <li>
-                                            <strong>${proc.nombre_tratamiento}</strong> - Costo: S/. ${proc.costo_personalizado} - Notas: ${proc.notas_evolucion || 'N/A'} - Pagado: S/. ${pagosProc.toFixed(2)} - Saldo: S/. ${saldoPendienteProc.toFixed(2)}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>${proc.nombre_tratamiento}</strong>
+                                                <br>Fecha: ${proc.fecha_realizacion}
+                                                <br>Detalle: ${proc.notas_evolucion || 'N/A'}
+                                                <br>Costo: S/. ${proc.costo_personalizado} - Pagado: S/. ${pagosProc.toFixed(2)} - Saldo: <span style="color: ${saldoColor}; font-weight: bold;">S/. ${saldoPendienteProc.toFixed(2)}</span>
+                                            </div>
                                             <div class="btn-group" role="group">
-                                                <button class="btn btn-sm btn-warning ms-2" onclick="mostrarModalEditarProcedimiento(${proc.id_procedimiento_realizado}, ${proc.costo_personalizado}, '${proc.notas_evolucion || ''}')">&#9998;</button>
-                                                <button class="btn btn-sm btn-danger ms-2" onclick="eliminarProcedimiento(${proc.id_procedimiento_realizado})">&#128465;</button>
-                                                <button class="btn btn-sm btn-primary ms-2" ${saldoPendienteProc <= 0 ? 'disabled' : ''} onclick="mostrarModalPago(${proc.id_procedimiento_realizado})">&#128179; Registrar Pago</button>
+                                                <button class="btn btn-sm btn-warning ms-2" onclick="mostrarModalEditarProcedimiento(${proc.id_procedimiento_realizado}, ${proc.costo_personalizado}, '${proc.notas_evolucion || ''}')" data-bs-toggle="tooltip" title="Editar Procedimiento">&#9998;</button>
+                                                <button class="btn btn-sm btn-danger ms-2" onclick="eliminarProcedimiento(${proc.id_procedimiento_realizado})" data-bs-toggle="tooltip" title="Eliminar Procedimiento">&#128465;</button>
+                                                <button class="btn btn-sm btn-primary ms-2" ${saldoPendienteProc <= 0 ? 'disabled' : ''} onclick="mostrarModalPago(${proc.id_procedimiento_realizado}, ${saldoPendienteProc})" data-bs-toggle="tooltip" title="Registrar Pago">&#128179;</button>
                                             </div>
                                         </li>
                                     `;
                                 });
                             }
+                            
                             const planHtml = `
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="${headingId}">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}" aria-expanded="false" aria-controls="${collapseId}">
-                                            Plan #${plan.id_plan_tratamiento} (${plan.estado_plan}) - Total: S/. ${costoTotalPlan.toFixed(2)}
-                                        </button>
-                                    </h2>
-                                    <div id="${collapseId}" class="accordion-collapse collapse" aria-labelledby="${headingId}" data-bs-parent="#planes-tratamiento-accordion">
-                                        <div class="accordion-body">
-                                            <div class="d-flex justify-content-end mb-3">
-                                                <button class="btn btn-sm btn-danger me-2" onclick="eliminarPlan(${plan.id_plan_tratamiento})">&#128465; Eliminar Plan</button>
-                                                <button class="btn btn-sm btn-success me-2" onclick="mostrarModalProcedimiento(${plan.id_plan_tratamiento})">&#10133; Procedimiento</button>
-                                                <button class="btn btn-sm btn-info text-white me-2" onclick="generarPresupuesto(${plan.id_plan_tratamiento})">&#128220; Presupuesto</button>
-                                            </div>
-                                            <h5>Procedimientos Realizados:</h5>
-                                            <ul>${procedimientosHtml || '<li>No hay procedimientos registrados.</li>'}</ul>
+                                <div class="card mb-3">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0">Diagnóstico: ${plan.nombre_diagnostico}</h5>
+                                        <div>
+                                            <button class="btn btn-sm btn-outline-secondary text-dark" onclick="mostrarModalObservaciones('${plan.observaciones || ''}')" data-bs-toggle="tooltip" title="Ver Observaciones">&#128269;</button>
+                                            <button class="btn btn-sm btn-danger me-2" onclick="eliminarPlan(${plan.id_plan_tratamiento})" data-bs-toggle="tooltip" title="Eliminar Plan">&#128465; Eliminar Plan</button>
+                                            <button class="btn btn-sm btn-success me-2" onclick="mostrarModalProcedimiento(${plan.id_plan_tratamiento})">&#10133; Procedimiento</button>
+                                            <button class="btn btn-sm btn-info text-white" onclick="generarPresupuesto(${plan.id_plan_tratamiento})">&#128220; Presupuesto</button>
                                         </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <h6 class="mb-3">Procedimientos Realizados:</h6>
+                                        <ul class="list-group">${procedimientosHtml || '<li class="list-group-item">No hay procedimientos registrados.</li>'}</ul>
                                     </div>
                                 </div>
                             `;
-                            planesTratamientoAccordion.innerHTML += planHtml;
+                            planesTratamientoContainer.innerHTML += planHtml;
                         });
                     } else {
-                        planesTratamientoAccordion.innerHTML = '<p>No hay planes de tratamiento para este paciente.</p>';
+                        planesTratamientoContainer.innerHTML = '<p>No hay planes de tratamiento para este paciente.</p>';
                     }
 
                     // Cargar historial de pagos (RF6.1)
@@ -418,7 +451,7 @@ if (!$id_paciente) {
                             const row = `
                                 <tr>
                                     <td>${pago.fecha_pago}</td>
-                                    <td>${pago.id_plan_tratamiento ? `Plan #${pago.id_plan_tratamiento}` : 'Pago puntual'}</td>
+                                    <td>${pago.nombre_diagnostico || 'N/A'}</td>
                                     <td>S/. ${pago.monto}</td>
                                     <td>${pago.metodo_pago}</td>
                                     <td>${pago.tipo_pago}</td>
@@ -427,8 +460,13 @@ if (!$id_paciente) {
                             historialPagosBody.innerHTML += row;
                         });
                     } else {
-                        historialPagosBody.innerHTML = '<tr><td colspan="5" class="text-center">No hay pagos registrados.</td></tr>';
+                        historialPagosBody.innerHTML = '<tr><td colspan="6" class="text-center">No hay pagos registrados.</td></tr>';
                     }
+
+                    // Inicializar tooltips de Bootstrap
+                    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+                    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
                 })
                 .catch(error => console.error('Error al cargar historial del paciente:', error));
         }
@@ -668,7 +706,13 @@ if (!$id_paciente) {
             })
             .catch(error => console.error('Error al registrar pago:', error));
         });
-
+        
+        // Función global para mostrar el modal de observaciones
+        window.mostrarModalObservaciones = function(observaciones) {
+            observacionesDetalleDiv.textContent = observaciones || 'No hay observaciones para este plan.';
+            observacionesModal.show();
+        };
+        
         // Función global para generar presupuesto
         window.generarPresupuesto = function(idPlan) {
             fetch(`api/atenciones.php?action=generar_presupuesto&id_plan_tratamiento=${idPlan}`)
@@ -677,34 +721,41 @@ if (!$id_paciente) {
                     const clinica = presupuesto.clinica;
                     const paciente = presupuesto.paciente;
                     const tratamientos = presupuesto.tratamientos;
-                    const pagos = presupuesto.pagos;
                     let costoTotal = 0;
                     let pagosTotales = 0;
 
                     let tratamientosHtml = '';
                     tratamientos.forEach(t => {
+                        let pagosProc = 0;
+                        if (t.pagos) {
+                            t.pagos.forEach(p => {
+                                pagosProc += parseFloat(p.monto);
+                            });
+                        }
+                        const saldoPendienteProc = parseFloat(t.costo_personalizado) - pagosProc;
                         costoTotal += parseFloat(t.costo_personalizado);
+                        pagosTotales += pagosProc;
+                        
+                        let saldoColor = '';
+                        if (saldoPendienteProc > 0) {
+                            saldoColor = '#dc3545'; // Rojo
+                        } else if (saldoPendienteProc < 0) {
+                            saldoColor = '#0d6efd'; // Azul
+                        } else {
+                            saldoColor = '#198754'; // Verde
+                        }
+
                         tratamientosHtml += `
                             <tr>
                                 <td>${t.nombre_tratamiento}</td>
                                 <td>S/. ${t.costo_personalizado}</td>
+                                <td>S/. ${pagosProc.toFixed(2)}</td>
+                                <td><span style="color: ${saldoColor}; font-weight: bold;">S/. ${saldoPendienteProc.toFixed(2)}</span></td>
                             </tr>
                         `;
                     });
-
-                    let pagosHtml = '';
-                    pagos.forEach(p => {
-                        pagosTotales += parseFloat(p.monto);
-                        pagosHtml += `
-                            <tr>
-                                <td>${p.fecha_pago}</td>
-                                <td>S/. ${p.monto}</td>
-                                <td>${p.metodo_pago}</td>
-                            </tr>
-                        `;
-                    });
-
-                    const saldoPendiente = costoTotal - pagosTotales;
+                    
+                    const saldoPendientePlan = costoTotal - pagosTotales;
 
                     presupuestoDetalleDiv.innerHTML = `
                         <div class="row">
@@ -729,6 +780,8 @@ if (!$id_paciente) {
                                 <tr>
                                     <th>Tratamiento</th>
                                     <th>Costo</th>
+                                    <th>Pagado</th>
+                                    <th>Saldo</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -736,31 +789,16 @@ if (!$id_paciente) {
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th colspan="1" class="text-end">Costo Total:</th>
+                                    <th colspan="3" class="text-end">Costo Total:</th>
                                     <th>S/. ${costoTotal.toFixed(2)}</th>
                                 </tr>
-                            </tfoot>
-                        </table>
-                        <h5 class="mt-4">Historial de Pagos</h5>
-                        <table class="table table-striped">
-                            <thead>
                                 <tr>
-                                    <th>Fecha</th>
-                                    <th>Monto</th>
-                                    <th>Método</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${pagosHtml || '<tr><td colspan="3" class="text-center">No hay pagos registrados.</td></tr>'}
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <th colspan="1" class="text-end">Total Pagado:</th>
+                                    <th colspan="3" class="text-end">Total Pagado:</th>
                                     <th>S/. ${pagosTotales.toFixed(2)}</th>
                                 </tr>
                                 <tr>
-                                    <th colspan="1" class="text-end">Saldo Pendiente:</th>
-                                    <th>S/. ${saldoPendiente.toFixed(2)}</th>
+                                    <th colspan="3" class="text-end">Saldo Pendiente:</th>
+                                    <th>S/. ${saldoPendientePlan.toFixed(2)}</th>
                                 </tr>
                             </tfoot>
                         </table>

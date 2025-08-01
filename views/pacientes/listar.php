@@ -57,6 +57,7 @@
                     <tr>
                         <th>Nombres y Apellidos</th>
                         <th>Teléfono</th>
+                        <th>Edad</th>
                         <th>Estado</th>
                         <th>Última Atención</th>
                         <th>Último Tratamiento</th>
@@ -159,6 +160,7 @@
                                 <tr>
                                     <td>${paciente.nombre_completo}</td>
                                     <td>${paciente.telefono || 'N/A'}</td>
+                                    <td>${paciente.edad}</td>
                                     <td>${paciente.estado}</td>
                                     <td>${paciente.fecha_ultima_atencion || 'N/A'}</td>
                                     <td>${paciente.ultimo_tratamiento || 'N/A'}</td>
@@ -172,7 +174,7 @@
                             pacientesTableBody.innerHTML += row;
                         });
                     } else {
-                        pacientesTableBody.innerHTML = `<tr><td colspan="6" class="text-center">No se encontraron pacientes.</td></tr>`;
+                        pacientesTableBody.innerHTML = `<tr><td colspan="7" class="text-center">No se encontraron pacientes.</td></tr>`;
                     }
                     renderPaginationControls();
                 })

@@ -25,6 +25,52 @@
     </div>
 </div>
 
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                Pacientes por Sexo
+            </div>
+            <div class="card-body">
+                <canvas id="pacientesSexoChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                Pacientes por Estado
+            </div>
+            <div class="card-body">
+                <canvas id="pacientesEstadoChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                Pacientes por Departamento
+            </div>
+            <div class="card-body">
+                <canvas id="pacientesDepartamentoChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                Pacientes por Distrito
+            </div>
+            <div class="card-body">
+                <canvas id="pacientesDistritoChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="card mb-4">
     <div class="card-header">
         Estadísticas de Procedimientos (Últimos 30 días)
@@ -34,75 +80,127 @@
     </div>
 </div>
 
-<div class="card mb-4">
-    <div class="card-header">
-        Ingresos vs. Gastos (Anual)
-    </div>
-    <div class="card-body">
-        <canvas id="ingresosGastosChart"></canvas>
-    </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Obtener datos del dashboard de la API (se creará en el siguiente paso)
-        fetch('api/dashboard.php')
-            .then(response => response.json())
-            .then(data => {
-                // Actualizar contadores
-                document.getElementById('total-pacientes').textContent = data.total_pacientes;
-                document.getElementById('citas-hoy').textContent = data.citas_hoy;
-                
-                // Gráfico de procedimientos más realizados
-                const procedimientosCtx = document.getElementById('procedimientosChart').getContext('2d');
-                new Chart(procedimientosCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: data.procedimientos_populares.map(p => p.nombre_tratamiento),
-                        datasets: [{
-                            label: 'Procedimientos más realizados',
-                            data: data.procedimientos_populares.map(p => p.conteo),
-                            backgroundColor: 'rgba(13, 110, 253, 0.5)',
-                            borderColor: 'rgba(13, 110, 253, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
+        let pacientesSexoChart, pacientesEstadoChart, pacientesDepartamentoChart, pacientesDistritoChart, procedimientosChart;
+
+        // Función para cargar los datos del dashboard de la API
+        function cargarDatosDashboard() {
+            fetch('api/dashboard.php')
+                .then(response => response.json())
+                .then(data => {
+                    // Actualizar contadores
+                    document.getElementById('total-pacientes').textContent = data.total_pacientes;
+                    document.getElementById('citas-hoy').textContent = data.citas_hoy;
+                    
+                    // Gráfico de pacientes por sexo (Barras Horizontales)
+                    if (pacientesSexoChart) { pacientesSexoChart.destroy(); }
+                    const pacientesSexoCtx = document.getElementById('pacientesSexoChart').getContext('2d');
+                    pacientesSexoChart = new Chart(pacientesSexoCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.pacientes_por_sexo.map(p => p.nombre_sexo),
+                            datasets: [{
+                                label: 'Cantidad',
+                                data: data.pacientes_por_sexo.map(p => p.conteo),
+                                backgroundColor: ['#0d6efd', '#dc3545', '#6c757d'],
+                                borderColor: ['#0d6efd', '#dc3545', '#6c757d'],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            scales: { x: { beginAtZero: true } }
                         }
-                    }
-                });
-                
-                // Gráfico de ingresos vs. gastos
-                const ingresosGastosCtx = document.getElementById('ingresosGastosChart').getContext('2d');
-                new Chart(ingresosGastosCtx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-                        datasets: [{
-                            label: 'Ingresos',
-                            data: data.ingresos_anuales,
-                            borderColor: 'rgba(40, 167, 69, 1)',
-                            backgroundColor: 'rgba(40, 167, 69, 0.2)',
-                            tension: 0.4,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
+                    });
+
+                    // Gráfico de pacientes por estado
+                    if (pacientesEstadoChart) { pacientesEstadoChart.destroy(); }
+                    const pacientesEstadoCtx = document.getElementById('pacientesEstadoChart').getContext('2d');
+                    pacientesEstadoChart = new Chart(pacientesEstadoCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: data.pacientes_por_estado.map(p => p.nombre_estado),
+                            datasets: [{
+                                data: data.pacientes_por_estado.map(p => p.conteo),
+                                backgroundColor: ['#198754', '#0d6efd', '#dc3545', '#ffc107'],
+                            }]
+                        },
+                        options: { responsive: true }
+                    });
+
+                    // Gráfico de pacientes por departamento (Barras Horizontales)
+                    if (pacientesDepartamentoChart) { pacientesDepartamentoChart.destroy(); }
+                    const pacientesDepartamentoCtx = document.getElementById('pacientesDepartamentoChart').getContext('2d');
+                    pacientesDepartamentoChart = new Chart(pacientesDepartamentoCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.pacientes_por_departamento.map(p => p.nombre),
+                            datasets: [{
+                                label: 'Cantidad',
+                                data: data.pacientes_por_departamento.map(p => p.conteo),
+                                backgroundColor: '#28a745',
+                                borderColor: '#28a745',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            scales: { x: { beginAtZero: true } }
                         }
-                    }
-                });
-            })
-            .catch(error => console.error('Error al cargar datos del dashboard:', error));
+                    });
+                    
+                    // Gráfico de pacientes por distrito (Barras Horizontales)
+                    if (pacientesDistritoChart) { pacientesDistritoChart.destroy(); }
+                    const pacientesDistritoCtx = document.getElementById('pacientesDistritoChart').getContext('2d');
+                    pacientesDistritoChart = new Chart(pacientesDistritoCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.pacientes_por_distrito.map(p => p.nombre),
+                            datasets: [{
+                                label: 'Cantidad',
+                                data: data.pacientes_por_distrito.map(p => p.conteo),
+                                backgroundColor: '#17a2b8',
+                                borderColor: '#17a2b8',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            scales: { x: { beginAtZero: true } }
+                        }
+                    });
+                    
+                    // Gráfico de procedimientos más realizados
+                    if (procedimientosChart) { procedimientosChart.destroy(); }
+                    const procedimientosCtx = document.getElementById('procedimientosChart').getContext('2d');
+                    procedimientosChart = new Chart(procedimientosCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.procedimientos_populares.map(p => p.nombre_tratamiento),
+                            datasets: [{
+                                label: 'Procedimientos más realizados',
+                                data: data.procedimientos_populares.map(p => p.conteo),
+                                backgroundColor: 'rgba(13, 110, 253, 0.5)',
+                                borderColor: 'rgba(13, 110, 253, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: { y: { beginAtZero: true } }
+                        }
+                    });
+
+                })
+                .catch(error => console.error('Error al cargar datos del dashboard:', error));
+        }
+
+        cargarDatosDashboard();
     });
 </script>

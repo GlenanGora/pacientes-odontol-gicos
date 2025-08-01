@@ -54,16 +54,14 @@ $page_title = ucfirst(str_replace(['_', '/'], ' ', $page));
 
                 <!-- Lógica de enrutamiento para cargar las vistas -->
                 <?php
-                // Se agrega 'pacientes/historia_clinica' a la lista de páginas permitidas.
-                $allowed_pages = ['dashboard', 'pacientes/listar', 'pacientes/registrar', 'pacientes/editar', 'pacientes/historia_clinica', 'citas/listar', 'citas/agendar', 'diagnosticos/gestionar', 'tratamientos/gestionar', 'recetas/historial', 'reportes/estadisticas'];
+                // Se agrega 'recetas/emitir_receta' a la lista de páginas permitidas
+                $allowed_pages = ['dashboard', 'pacientes/listar', 'pacientes/registrar', 'pacientes/editar', 'pacientes/historia_clinica', 'citas/listar', 'citas/agendar', 'diagnosticos/gestionar', 'recetas/historial', 'recetas/emitir_receta', 'reportes/estadisticas'];
                 $view_path = 'views/' . $page . '.php';
 
                 if (in_array($page, $allowed_pages) && file_exists($view_path)) {
                     include $view_path;
                 } else {
                     echo "<div class='alert alert-danger'>Página no encontrada.</div>";
-                    // En caso de que la página no exista, se puede cargar una página de error o el dashboard por defecto.
-                    // include 'views/dashboard.php';
                 }
                 ?>
             </main>

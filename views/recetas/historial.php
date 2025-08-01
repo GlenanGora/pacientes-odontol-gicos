@@ -8,7 +8,9 @@
 ?>
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3>Historial de Recetas</h3>
-    <!-- Aquí se podría agregar un botón para generar una nueva receta, si se implementara esa funcionalidad -->
+    <a href="?page=recetas/emitir_receta" class="btn btn-primary">
+        &#10133; Emitir Nueva Receta
+    </a>
 </div>
 
 <div class="card mb-4">
@@ -112,10 +114,10 @@
 
         // Función para cargar el historial de recetas
         function cargarRecetas(filtros = {}) {
-            let url = 'api/recetas.php';
+            let url = 'api/recetas.php?action=listar';
             const params = new URLSearchParams(filtros);
             if (Object.keys(filtros).length > 0) {
-                url += '?' + params.toString();
+                url += '&' + params.toString();
             }
 
             fetch(url)
@@ -154,15 +156,15 @@
             
             modalPaciente.textContent = receta.nombre_paciente;
             modalFecha.textContent = receta.fecha_emision;
-            modalIndicaciones.textContent = receta.indicaciones_generales || 'N/A';
             
-            // Cargar los medicamentos
-            modalMedicamentosBody.innerHTML = '';
-            fetch(`api/recetas.php?id_receta=${receta.id_receta}`)
+            // Cargar los detalles de la receta
+            fetch(`api/recetas.php?action=detalle&id_receta=${receta.id_receta}`)
                 .then(response => response.json())
-                .then(medicamentos => {
-                    if (medicamentos.length > 0) {
-                        medicamentos.forEach(med => {
+                .then(detalle => {
+                    modalIndicaciones.textContent = detalle.receta.indicaciones_generales || 'N/A';
+                    modalMedicamentosBody.innerHTML = '';
+                    if (detalle.medicamentos.length > 0) {
+                        detalle.medicamentos.forEach(med => {
                             const row = `
                                 <tr>
                                     <td>${med.nombre_medicamento}</td>

@@ -1,6 +1,6 @@
 {
   "clinica": {
-    "nombre": "Clínica Odontológica Ejemplo",
+    "nombre": "Clínica Odontológica el Olivo",
     "logotipo_url": "https://placehold.co/200x50/3498db/ffffff?text=Logo+Clínica",
     "direccion": "Av. Los Tulipanes 456, La Molina, Lima",
     "telefono": "999-888-777",
@@ -11,7 +11,7 @@
       "instagram": "https://www.instagram.com/clinicaejemplo",
       "whatsapp": "999-888-777"
     },
-    "nombre_doctor": "Dra. Sofía Torres"
+    "nombre_doctor": "Dra. Yeny GORA PORRAS"
   },
   "database": {
     "host": "localhost",

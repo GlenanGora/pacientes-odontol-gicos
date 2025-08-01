@@ -7,8 +7,21 @@
 
 header('Content-Type: application/json; charset=utf-8');
 
+// Configuración de manejo de errores para evitar que se imprima HTML
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    // Convertir el error a una excepción para poder capturarlo
+    throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
+});
+
 // Incluye el archivo de conexión y funciones auxiliares
-require_once '../core/functions.php';
+try {
+    require_once '../core/functions.php';
+    require_once '../core/db.php';
+} catch (ErrorException $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Error al cargar dependencias: ' . $e->getMessage()]);
+    exit();
+}
 
 // Verificación de método de petición
 $metodo = $_SERVER['REQUEST_METHOD'];
@@ -39,6 +52,7 @@ switch ($metodo) {
                         p.id_estado,
                         c.nombre_contacto AS contacto_emergencia_nombre,
                         c.telefono_contacto AS contacto_emergencia_telefono,
+                        TIMESTAMPDIFF(YEAR, p.fecha_nacimiento, CURDATE()) AS edad,
                         (SELECT MAX(fecha) FROM tbl_citas WHERE id_paciente = p.id_paciente) AS fecha_ultima_atencion,
                         (SELECT nombre_tratamiento FROM tbl_tratamientos t JOIN tbl_procedimientos_realizados pr ON t.id_tratamiento = pr.id_tratamiento JOIN tbl_planes_tratamiento pt ON pr.id_plan_tratamiento = pt.id_plan_tratamiento WHERE pt.id_paciente = p.id_paciente ORDER BY pr.fecha_realizacion DESC LIMIT 1) AS ultimo_tratamiento
                       FROM tbl_pacientes p
@@ -99,6 +113,7 @@ switch ($metodo) {
                                 p.id_paciente,
                                 CONCAT(p.nombres, ' ', p.apellidos) AS nombre_completo,
                                 p.telefono,
+                                TIMESTAMPDIFF(YEAR, p.fecha_nacimiento, CURDATE()) AS edad,
                                 ep.nombre_estado AS estado,
                                 (SELECT MAX(fecha) FROM tbl_citas WHERE id_paciente = p.id_paciente) AS fecha_ultima_atencion,
                                 (SELECT nombre_tratamiento FROM tbl_tratamientos t JOIN tbl_procedimientos_realizados pr ON t.id_tratamiento = pr.id_tratamiento JOIN tbl_planes_tratamiento pt ON pr.id_plan_tratamiento = pt.id_plan_tratamiento WHERE pt.id_paciente = p.id_paciente ORDER BY pr.fecha_realizacion DESC LIMIT 1) AS ultimo_tratamiento

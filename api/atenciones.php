@@ -97,25 +97,17 @@ switch ($metodo) {
                 case 'crear_plan_tratamiento':
                     // Lógica para crear un nuevo plan de tratamiento (RF3.2)
                     $id_paciente = sanear_entrada($data['id_paciente']);
+                    $id_diagnostico = sanear_entrada($data['id_diagnostico']);
                     $observaciones = sanear_entrada($data['observaciones']);
 
                     $conexion->begin_transaction();
                     try {
                         // Insertar en la tabla de planes de tratamiento
-                        $stmt_plan = $conexion->prepare("INSERT INTO tbl_planes_tratamiento (id_paciente) VALUES (?)");
-                        $stmt_plan->bind_param("i", $id_paciente);
+                        $stmt_plan = $conexion->prepare("INSERT INTO tbl_planes_tratamiento (id_paciente, id_diagnostico, observaciones) VALUES (?, ?, ?)");
+                        $stmt_plan->bind_param("iis", $id_paciente, $id_diagnostico, $observaciones);
                         $stmt_plan->execute();
                         $id_plan = $conexion->insert_id;
                         $stmt_plan->close();
-
-                        // Asociar el diagnóstico y observaciones
-                        // Para este caso, se actualizará el historial médico del paciente con la observación.
-                        // RF1.5: Gestión de historia medica
-                        $query_historial = "UPDATE tbl_historial_medico SET enfermedades_preexistentes = CONCAT(IFNULL(enfermedades_preexistentes, ''), '\n', ?), fecha_modificacion = NOW() WHERE id_paciente = ?";
-                        $stmt_historial = $conexion->prepare($query_historial);
-                        $stmt_historial->bind_param("si", $observaciones, $id_paciente);
-                        $stmt_historial->execute();
-                        $stmt_historial->close();
                         
                         $conexion->commit();
                         echo json_encode(['success' => true, 'message' => 'Plan de tratamiento creado con éxito.']);

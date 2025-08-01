@@ -4,109 +4,166 @@
  * Autor: Gemini
  */
 
-/* Estilos Generales del Cuerpo */
+/* Paleta de Colores
+   Principal: #0d6efd (Azul Oscuro)
+   Secundario: #495057 (Gris Oscuro)
+   Éxito: #198754 (Verde)
+   Advertencia: #ffc107 (Amarillo)
+   Peligro: #dc3545 (Rojo)
+   Fondo: #f8f9fa (Gris Claro)
+   Texto: #343a40 (Negro Oscuro)
+*/
+
 body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f0f2f5;
+    font-family: 'Inter', sans-serif;
+    background-color: #f8f9fa;
+    color: #343a40;
 }
 
-/* Estilos para el Dashboard y Contenedor Principal */
-.dashboard-container {
-    padding-top: 56px; /* Ajuste para la altura del navbar fijo */
-}
-
-/* Estilos para la Barra de Navegación Superior */
+/* Estilos de la Barra de Navegación Superior */
 .navbar {
-    z-index: 1000;
+    background-color: #0d6efd !important;
+    border-bottom: 3px solid #0b5ed7;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 .navbar-brand {
-    font-weight: bold;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #ffffff;
+}
+.navbar-brand:hover {
+    color: #e9ecef;
 }
 
-/* Estilos para la Barra de Navegación Lateral (Sidebar) */
+/* Estilos de la Barra de Navegación Lateral */
 .sidebar {
     position: fixed;
-    top: 56px; /* Alineado debajo de la barra de navegación superior */
+    top: 56px;
     bottom: 0;
     left: 0;
     z-index: 999;
-    padding: 1rem;
+    padding: 1.5rem 0;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    background-color: #fff;
+    background-color: #ffffff;
     overflow-y: auto;
-}
-@media (min-width: 768px) {
-    .sidebar {
-        width: 200px; /* Ancho fijo para pantallas de escritorio */
-    }
-}
-.sidebar .nav-item {
-    margin-bottom: 0.5rem;
 }
 .sidebar .nav-link {
     font-weight: 500;
-    color: #333;
-    padding: 0.75rem 1rem;
-    border-radius: 5px;
+    color: #495057;
+    padding: 1rem 1.5rem;
+    border-radius: 0;
     transition: background-color 0.2s ease;
 }
 .sidebar .nav-link.active {
-    color: #fff;
+    color: #ffffff;
     background-color: #0d6efd;
+    border-left: 5px solid #ffc107;
 }
 .sidebar .nav-link:hover:not(.active) {
     background-color: #e9ecef;
     color: #0d6efd;
 }
-
-/* Estilos para el Contenido Principal */
-main {
-    padding-top: 1rem;
+.sidebar .nav-link span {
+    font-size: 1.2rem;
+    vertical-align: middle;
 }
+
+/* Estilos Generales de Contenido */
+main {
+    background-color: #f8f9fa;
+    min-height: calc(100vh - 56px);
+}
+h1, h2, h3, h4, h5, h6 {
+    color: #343a40;
+    font-weight: 600;
+}
+
+/* Estilos de Tarjetas (Cards) */
 .card {
     border: none;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease;
+}
+.card:hover {
+    transform: translateY(-5px);
 }
 .card-header {
     background-color: #0d6efd;
     color: #fff;
-    border-radius: 10px 10px 0 0;
-}
-.table {
-    margin-bottom: 0;
+    font-weight: 600;
+    border-radius: 12px 12px 0 0;
 }
 
-/* Estilos de Botones y Formularios */
+/* Estilos de Formularios y Botones */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
 .btn-primary {
     background-color: #0d6efd;
     border-color: #0d6efd;
+    border-radius: 8px;
+    font-weight: 600;
 }
 .btn-primary:hover {
     background-color: #0b5ed7;
     border-color: #0a58ca;
 }
-.form-control:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+.btn-danger {
+    border-radius: 8px;
+    font-weight: 600;
+}
+.btn-warning {
+    border-radius: 8px;
+    font-weight: 600;
+}
+.btn-info {
+    border-radius: 8px;
+    font-weight: 600;
+}
+.btn-success {
+    background-color: #198754;
+    border-color: #198754;
+    border-radius: 8px;
+    font-weight: 600;
 }
 
-/* Contenedor de la vista principal */
-.content-wrapper {
-    margin-top: 20px;
+/* Estilos de Tablas */
+.table {
+    border-collapse: collapse;
 }
-
-/* Estilos para tablas */
-.table-hover tbody tr:hover {
-    background-color: #e2e6ea;
+.table thead th {
+    background-color: #f0f2f5;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+}
+.table tbody tr:hover {
+    background-color: #e9ecef;
 }
 
 /* Estilos de Modales */
 .modal-header {
     background-color: #0d6efd;
     color: white;
-    border-bottom: 1px solid #dee2e6;
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
 }
 .modal-header .btn-close {
     filter: invert(1);
+}
+.modal-content {
+    border-radius: 12px;
+}
+
+/* Utilidades personalizadas */
+.text-bold {
+    font-weight: bold;
+}
+.list-group-item:hover {
+    background-color: #f8f9fa;
 }
