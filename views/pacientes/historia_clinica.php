@@ -500,20 +500,20 @@ if (!$id_paciente) {
                                     }
 
                                     procedimientosHtml += `
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <strong>${proc.nombre_tratamiento}</strong>
-                                                <br>Fecha: ${proc.fecha_realizacion}
-                                                <br>Detalle: ${proc.notas_evolucion || 'N/A'}
-                                                <br>Costo: S/. ${proc.costo_personalizado} - Pagado: S/. ${pagosProc.toFixed(2)} - Saldo: <span style="color: ${saldoColor}; font-weight: bold;">S/. ${saldoPendienteProc.toFixed(2)}</span>
-                                            </div>
-                                            <div class="btn-group" role="group">
-                                                <button class="btn btn-sm btn-warning ms-2" onclick="mostrarModalEditarProcedimiento(${proc.id_procedimiento_realizado}, ${proc.costo_personalizado}, '${proc.notas_evolucion || ''}')" data-bs-toggle="tooltip" title="Editar Procedimiento">&#9998;</button>
-                                                <button class="btn btn-sm btn-danger ms-2" onclick="eliminarProcedimiento(${proc.id_procedimiento_realizado})" data-bs-toggle="tooltip" title="Eliminar Procedimiento">&#128465;</button>
-                                                <button class="btn btn-sm btn-primary ms-2" ${saldoPendienteProc <= 0 ? 'disabled' : ''} onclick="mostrarModalPago(${proc.id_procedimiento_realizado}, ${saldoPendienteProc})" data-bs-toggle="tooltip" title="Registrar Pago">&#128179;</button>
-                                                <button class="btn btn-sm btn-info text-white ms-2" onclick="mostrarModalEmitirReceta(${proc.id_procedimiento_realizado})" data-bs-toggle="tooltip" title="Emitir Receta">&#128220;</button>
-                                            </div>
-                                        </li>
+                                        <tr>
+                                            <td>${proc.nombre_tratamiento}</td>
+                                            <td>${proc.fecha_realizacion}</td>
+                                            <td>${proc.notas_evolucion || 'N/A'}</td>
+                                            <td>S/. ${proc.costo_personalizado}</td>
+                                            <td>S/. ${pagosProc.toFixed(2)}</td>
+                                            <td><span style="color: ${saldoColor}; font-weight: bold;">S/. ${saldoPendienteProc.toFixed(2)}</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-warning" onclick="mostrarModalEditarProcedimiento(${proc.id_procedimiento_realizado}, ${proc.costo_personalizado}, '${proc.notas_evolucion || ''}')" data-bs-toggle="tooltip" title="Editar Procedimiento">&#9998;</button>
+                                                <button class="btn btn-sm btn-danger" onclick="eliminarProcedimiento(${proc.id_procedimiento_realizado})" data-bs-toggle="tooltip" title="Eliminar Procedimiento">&#128465;</button>
+                                                <button class="btn btn-sm btn-primary" ${saldoPendienteProc <= 0 ? 'disabled' : ''} onclick="mostrarModalPago(${proc.id_procedimiento_realizado}, ${saldoPendienteProc})" data-bs-toggle="tooltip" title="Registrar Pago">&#128179;</button>
+                                                <button class="btn btn-sm btn-info text-white" onclick="mostrarModalEmitirReceta(${proc.id_procedimiento_realizado})" data-bs-toggle="tooltip" title="Emitir Receta">&#128220;</button>
+                                            </td>
+                                        </tr>
                                     `;
                                 });
                             }
@@ -531,7 +531,24 @@ if (!$id_paciente) {
                                     </div>
                                     <div class="card-body">
                                         <h6 class="mb-3">Procedimientos Realizados:</h6>
-                                        <ul class="list-group">${procedimientosHtml || '<li class="list-group-item">No hay procedimientos registrados.</li>'}</ul>
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Procedimiento</th>
+                                                        <th>Fecha</th>
+                                                        <th>Detalle</th>
+                                                        <th>Costo</th>
+                                                        <th>Pagado</th>
+                                                        <th>Saldo</th>
+                                                        <th>Opciones</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    ${procedimientosHtml || '<tr><td colspan="7" class="text-center">No hay procedimientos registrados.</td></tr>'}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             `;
