@@ -16,9 +16,14 @@ if (!$id_paciente) {
 ?>
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3>Historia Clínica del Paciente: <span id="paciente-nombre-completo"></span></h3>
-    <a href="?page=pacientes/listar" class="btn btn-secondary">
-        <span class="me-2">&#8592;</span> Volver a la Lista
-    </a>
+    <div>
+        <a href="?page=odontograma&id=<?php echo $id_paciente; ?>" class="btn btn-primary me-2">
+            &#129661; Odontograma
+        </a>
+        <a href="?page=pacientes/listar" class="btn btn-secondary">
+            <span class="me-2">&#8592;</span> Volver a la Lista
+        </a>
+    </div>
 </div>
 
 <div class="row">
@@ -512,6 +517,7 @@ if (!$id_paciente) {
                                                 <button class="btn btn-sm btn-danger" onclick="eliminarProcedimiento(${proc.id_procedimiento_realizado})" data-bs-toggle="tooltip" title="Eliminar Procedimiento">&#128465;</button>
                                                 <button class="btn btn-sm btn-primary" ${saldoPendienteProc <= 0 ? 'disabled' : ''} onclick="mostrarModalPago(${proc.id_procedimiento_realizado}, ${saldoPendienteProc})" data-bs-toggle="tooltip" title="Registrar Pago">&#128179;</button>
                                                 <button class="btn btn-sm btn-info text-white" onclick="mostrarModalEmitirReceta(${proc.id_procedimiento_realizado})" data-bs-toggle="tooltip" title="Emitir Receta">&#128220;</button>
+                                                
                                             </td>
                                         </tr>
                                     `;

@@ -54,8 +54,8 @@ $page_title = ucfirst(str_replace(['_', '/'], ' ', $page));
 
                 <!-- Lógica de enrutamiento para cargar las vistas -->
                 <?php
-                // Se agrega 'recetas/emitir_receta' a la lista de páginas permitidas
-                $allowed_pages = ['dashboard', 'pacientes/listar', 'pacientes/registrar', 'pacientes/editar', 'pacientes/historia_clinica', 'citas/listar', 'citas/agendar', 'diagnosticos/gestionar', 'recetas/historial', 'recetas/emitir_receta', 'reportes/estadisticas'];
+                // Se agrega 'odontograma' a la lista de páginas permitidas
+                $allowed_pages = ['dashboard', 'pacientes/listar', 'pacientes/registrar', 'pacientes/editar', 'pacientes/historia_clinica', 'citas/listar', 'citas/agendar', 'diagnosticos/gestionar', 'recetas/historial', 'recetas/emitir_receta', 'reportes/estadisticas', 'odontograma'];
                 $view_path = 'views/' . $page . '.php';
 
                 if (in_array($page, $allowed_pages) && file_exists($view_path)) {
