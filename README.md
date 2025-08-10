@@ -77,3 +77,6 @@ Vaya a la carpeta [images](images/) para ver todas las capturas de la plataforma
 
 <image src="images/ListaPacientes.jpg" alt="Lista de Pacientes">
 <image src="images/historiaClinica.jpg" alt="Lista de Pacientes">
+
+## Finalmente
+Siéntete libre de compartir este repositorio a los Odontólogos que recien empiezan o que ya llevan tiempo en su profesión y que necesitan contar con una plataforma que les permita gestionar sus atenciones de forma básica, espero les ayude...👍

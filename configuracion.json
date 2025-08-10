@@ -1,8 +1,8 @@
 {
   "clinica": {
-    "nombre": "Clínica Odontológica el Olivo",
+    "nombre": "Nombre de la Clínica",
     "logotipo_url": "https://placehold.co/200x50/3498db/ffffff?text=Logo+Clínica",
-    "direccion": "Av. Los Tulipanes 456, La Molina, Lima",
+    "direccion": "Av. Los exitosos",
     "telefono": "999-888-777",
     "correo": "contacto@clinicaejemplo.com",
     "horario_atencion": "Lunes a Viernes de 9:00 a 18:00",
@@ -11,7 +11,7 @@
       "instagram": "https://www.instagram.com/clinicaejemplo",
       "whatsapp": "999-888-777"
     },
-    "nombre_doctor": "Dra. Yeny GORA PORRAS"
+    "nombre_doctor": "NOmbre del Doctor(a)"
   },
   "database": {
     "host": "localhost",
